@@ -1,0 +1,78 @@
+-- 1. CREACIÓN DE LA BASE DE DATOS
+DROP DATABASE IF EXISTS proyecto_blog;
+CREATE DATABASE proyecto_blog;
+
+\c proyecto_blog
+
+-- ==========================================
+-- 2. TABLA CATÁLOGO: SEXOS
+-- ==========================================
+CREATE TABLE CAT_SEXOS (
+    COD_SEXO CHAR(1) PRIMARY KEY,
+    DESCRIPCION VARCHAR(20) NOT NULL,
+    -- Corrección: La descripción del sexo debe ser única
+    CONSTRAINT CAT_SEXOS_DESC_UQ UNIQUE (DESCRIPCION) 
+);
+
+-- ==========================================
+-- 3. TABLA: AUTORES
+-- ==========================================
+CREATE TABLE AUTORES (
+    ID_AUTOR SERIAL PRIMARY KEY,            -- PK Autoincrementable
+    NOMBRE VARCHAR(50) NOT NULL,
+    PRIMER_APELLIDO VARCHAR(50),
+    SEGUNDO_APELLIDO VARCHAR(50),
+    COD_SEXO CHAR(1) NOT NULL,              -- FK al catálogo
+    EMAIL VARCHAR(150) NOT NULL,
+    TELEFONO VARCHAR(10) NOT NULL,
+    BIOGRAFIA VARCHAR(500) NOT NULL,
+    FECHA_REGISTRO DATE DEFAULT CURRENT_DATE NOT NULL,
+    ESTADO_AUTOR VARCHAR(20) DEFAULT 'ACTIVO' NOT NULL, -- Nombre de campo específico
+    
+    -- Restricciones y Validaciones
+    CONSTRAINT AUTORES_SEXO_FK FOREIGN KEY (COD_SEXO) REFERENCES CAT_SEXOS(COD_SEXO),
+    CONSTRAINT AUTORES_APELLIDOS_CK CHECK (PRIMER_APELLIDO IS NOT NULL OR SEGUNDO_APELLIDO IS NOT NULL),
+    CONSTRAINT AUTORES_EMAIL_UQ UNIQUE (EMAIL),
+    CONSTRAINT AUTORES_EMAIL_CK CHECK (EMAIL ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+    CONSTRAINT AUTORES_TELEFONO_CK CHECK (TELEFONO ~ '^[0-9]{10}$'),
+    CONSTRAINT AUTORES_ESTADO_CK CHECK (ESTADO_AUTOR IN ('ACTIVO', 'INACTIVO'))
+);
+
+-- ==========================================
+-- 4. TABLA: CATEGORIAS
+-- ==========================================
+CREATE TABLE CATEGORIAS (
+    ID_CATEGORIA SERIAL PRIMARY KEY,        -- PK Autoincrementable
+    NOMBRE_CATEGORIA VARCHAR(50) NOT NULL,
+    DESCRIPCION VARCHAR(200) NOT NULL,      -- Descripción NO única (Corrección Obs 6)
+    
+    CONSTRAINT CAT_NOMBRE_UQ UNIQUE (NOMBRE_CATEGORIA)
+);
+
+-- ==========================================
+-- 5. TABLA: PUBLICACIONES
+-- ==========================================
+CREATE TABLE PUBLICACIONES (
+    ID_PUBLICACION SERIAL PRIMARY KEY,      -- PK Autoincrementable
+    TITULO VARCHAR(200) NOT NULL,
+    ID_AUTOR INTEGER NOT NULL,
+    ID_CATEGORIA INTEGER NOT NULL,
+    FECHA_PUBLICACION TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, -- Timestamp (Corrección Obs 9)
+    TEXTO_PUBLICACION TEXT NOT NULL,
+    ESTADO_PUBLICACION VARCHAR(30) DEFAULT 'ACTIVO' NOT NULL, -- Nombre de campo específico
+    
+    -- Relaciones
+    CONSTRAINT PUB_ID_AUTOR_FK FOREIGN KEY (ID_AUTOR) REFERENCES AUTORES (ID_AUTOR),
+    CONSTRAINT PUB_ID_CATEGORIA_FK FOREIGN KEY (ID_CATEGORIA) REFERENCES CATEGORIAS (ID_CATEGORIA),
+    
+    -- Validaciones de Estado (Incluye corrección Obs 8)
+    CONSTRAINT PUB_ESTADO_CK CHECK (ESTADO_PUBLICACION IN ('ACTIVO', 'INACTIVO', 'PENDIENTE_VERIFICACION', 'SUSPENDIDO'))
+);
+
+-- ==========================================
+-- 6. ÍNDICES (Optimización Obs 10)
+-- ==========================================
+CREATE INDEX IDX_PUB_AUTOR ON PUBLICACIONES(ID_AUTOR);
+CREATE INDEX IDX_PUB_CATEGORIA ON PUBLICACIONES(ID_CATEGORIA);
+CREATE INDEX IDX_PUB_TITULO ON PUBLICACIONES(TITULO);
+[cite_start]``` [cite: 8]
