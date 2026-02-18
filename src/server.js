@@ -1,18 +1,21 @@
 const express = require('express');
 const { Pool } = require('pg');
-const app = express();
-const port = 3000;
+require('dotenv').config(); // <--- 1. ESTO ES LO NUEVO: Carga el archivo .env
 
-// 1. Configuración de la Base de Datos
+const app = express();
+// Usamos el puerto definido en .env o el 3000 por defecto
+const port = process.env.PORT || 3000; 
+
+// 1. Configuración de la Base de Datos (Segura)
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'proyecto_blog',
-    password: 'admin', 
-    port: 5432,
+    user: process.env.DB_USER,         // Lee DB_USER del .env
+    host: process.env.DB_HOST,         // Lee DB_HOST del .env
+    database: process.env.DB_NAME,     // Lee DB_NAME del .env
+    password: process.env.DB_PASSWORD, // Lee DB_PASSWORD del .env (¡Tu secreto!)
+    port: process.env.DB_PORT,         // Lee DB_PORT del .env
 });
 
-// 2. Ruta de prueba (ESTA ES LA PARTE IMPORTANTE)
+// 2. Ruta de prueba
 app.get('/test-db', async (req, res) => {
     console.log('¡Petición recibida en /test-db!'); 
     try {
@@ -31,7 +34,7 @@ app.get('/test-db', async (req, res) => {
     }
 });
 
-// 3. Iniciar el servidor 333
+// 3. Iniciar el servidor
 app.listen(port, () => {
     console.log(`Servidor escuchando en http://localhost:${port}`);
     console.log(`Haz clic aquí para probar: http://localhost:${port}/test-db`);
