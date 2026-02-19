@@ -1,0 +1,102 @@
+/* --- VARIABLES --- */
+:root {
+    --cream-bg: #f9f7f2;
+    --pure-white: #ffffff;
+    --dark-text: #1a1a1a;
+    --muted-text: #666666;
+    --border-dark: #1a1a1a;
+    --border-soft: #e5e5e5;
+}
+
+body {
+    background-color: var(--cream-bg);
+    color: var(--dark-text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* --- TIPOGRAFÍA --- */
+h1, h2, h3, h4, h5, .navbar-brand, .section-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+}
+
+.serif { font-family: 'Playfair Display', serif; }
+.italic { font-style: italic; }
+
+/* --- NAVEGACIÓN --- */
+.navbar {
+    background-color: var(--pure-white);
+    border-bottom: 2px solid var(--border-dark) !important;
+    padding: 1.2rem 0;
+}
+
+.nav-link {
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--dark-text) !important;
+}
+
+/* --- BOTONES --- */
+.btn-editorial {
+    background-color: var(--dark-text);
+    color: var(--pure-white);
+    border-radius: 0;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    padding: 0.8rem 1.5rem;
+    border: 1px solid var(--dark-text);
+    text-decoration: none;
+    transition: 0.2s ease;
+    display: inline-block;
+}
+
+.btn-editorial:hover {
+    background-color: transparent;
+    color: var(--dark-text);
+}
+
+/* --- CARDS Y CONTENEDORES --- */
+.blog-card {
+    background: transparent;
+    border-bottom: 1px solid var(--border-soft);
+    padding: 2.5rem 0;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.sidebar-box, .login-card, .admin-sidebar {
+    background-color: var(--pure-white);
+    border: 1px solid var(--border-dark) !important;
+    padding: 2rem;
+}
+
+.category-tag {
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--muted-text);
+    letter-spacing: 1.5px;
+}
+
+/* --- FORMULARIOS --- */
+.form-control {
+    border-radius: 0;
+    border: 1px solid var(--border-dark);
+    padding: 0.8rem;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    border-color: var(--dark-text);
+}
+
+/* --- TABLAS --- */
+.table { border-color: var(--border-dark); }
+.badge { border-radius: 0; font-weight: 900; }
