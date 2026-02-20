@@ -2,42 +2,24 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Artículo | Proyecto Blog</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="inicio.html"><i class="fa-solid fa-book-open me-2"></i> PROYECTO_BLOG</a>
-            <div class="ms-auto"><a href="inicio.html" class="nav-link">Inicio</a></div>
-        </div>
-    </nav>
-
-    <main class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <nav class="mb-5"><a href="inicio.html" class="text-dark fw-bold small text-decoration-none"><i class="fa-solid fa-arrow-left me-2"></i> VOLVER AL LISTADO</a></nav>
-                <header class="mb-5">
-                    <div class="category-tag mb-3">Tecnología</div>
-                    <h1 class="display-3 mb-4">La Estética del Código Limpio</h1>
-                    <div class="py-3 border-top border-bottom d-flex align-items-center gap-4">
-                        <div class="bg-dark text-white rounded-circle p-2 px-3 fw-bold">JP</div>
-                        <div>
-                            <div class="small fw-bold text-uppercase">Juan Pérez</div>
-                            <div class="text-muted small">18 de Febrero, 2026 • 8 min lectura</div>
-                        </div>
-                    </div>
-                </header>
-                <div class="serif fs-5 lh-lg">
-                    <p class="lead fw-bold">La simplicidad es el orden en su forma más pura.</p>
-                    <p>En el desarrollo de software, esto se traduce en arquitecturas legibles. Al diseñar sistemas, a menudo caemos en la trampa de la sobre-ingeniería.</p>
-                </div>
-            </div>
-        </div>
-    </main>
+    <div id="app">
+        <nav class="navbar"><div class="container"><a class="navbar-brand" href="inicio.html">PROYECTO_BLOG</a></div></nav>
+        <main class="container py-5" style="max-width: 800px;">
+            <header class="mb-5">
+                <div class="category-tag">Tecnología</div>
+                <h1 class="display-3">La Estética del Código Limpio</h1>
+            </header>
+            <article class="serif fs-5">
+                <p>La simplicidad es el orden en su forma más pura...</p>
+            </article>
+        </main>
+    </div>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script>const { createApp } = Vue; createApp({}).mount('#app');</script>
 </body>
 </html>
