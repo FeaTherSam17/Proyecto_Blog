@@ -40,32 +40,71 @@
 
                 <main class="sidebar-box">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <h5 class="section-title mb-0">GESTIONAR CONTENIDO</h5>
-                        <button class="btn-editorial">+ NUEVA ENTRADA</button>
+                        <h5 class="section-title mb-0">{{ mostrarFormulario ? 'NUEVA ENTRADA' : 'GESTIONAR CONTENIDO' }}
+                        </h5>
+                        <button class="btn-editorial" @click="mostrarFormulario = !mostrarFormulario">
+                            {{ mostrarFormulario ? 'CANCELAR' : '+ NUEVA ENTRADA' }}
+                        </button>
                     </div>
 
-                    <table class="table" v-if="publicaciones.length > 0">
-                        <thead>
-                            <tr class="category-tag">
-                                <th>ID</th>
-                                <th>TÍTULO</th>
-                                <th>CATEGORÍA</th>
-                                <th>ESTADO</th>
-                                <th style="text-align: right;">ACCIONES</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="pub in publicaciones" :key="pub.id_publicacion">
-                                <td style="color: var(--muted-text);">#{{ pub.id_publicacion.toString().padStart(3, '0')
-                                    }}</td>
-                                <td style="font-weight: 700;">{{ pub.titulo }}</td>
-                                <td>{{ pub.nombre_categoria }}</td>
-                                <td><span class="badge">{{ pub.estado_publicacion }}</span></td>
-                                <td style="text-align: right; cursor: pointer; font-weight: 900;">⋮</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <p v-else class="text-secondary text-center py-5">No tienes publicaciones aún.</p>
+                    <!-- FORMULARIO NUEVA ENTRADA -->
+                    <div v-if="mostrarFormulario">
+                        <form @submit.prevent="crearPublicacion" class="p-4"
+                            style="border: 1px solid var(--border-soft); background: white;">
+                            <div class="mb-3">
+                                <label class="category-tag mb-2" style="font-size: 0.75rem;">TÍTULO</label>
+                                <input type="text" v-model="nuevaEntrada.titulo" class="form-control w-100" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="category-tag mb-2" style="font-size: 0.75rem;">CATEGORÍA</label>
+                                <select v-model="nuevaEntrada.id_categoria" class="form-control w-100" required>
+                                    <option value="" disabled>Selecciona una categoría</option>
+                                    <option v-for="cat in categorias" :key="cat.id_categoria" :value="cat.id_categoria">
+                                        {{ cat.nombre_categoria }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="category-tag mb-2" style="font-size: 0.75rem;">CONTENIDO</label>
+                                <textarea v-model="nuevaEntrada.texto_publicacion" class="form-control w-100" rows="10"
+                                    required></textarea>
+                            </div>
+
+                            <p v-if="errorMsg" class="text-danger" style="font-size: 0.8rem;">{{ errorMsg }}</p>
+
+                            <button type="submit" class="btn-editorial" :disabled="creandoPublicacion">
+                                {{ creandoPublicacion ? 'PUBLICANDO...' : 'PUBLICAR ENTRADA' }}
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- TABLA DE PUBLICACIONES -->
+                    <div v-else>
+                        <table class="table" v-if="publicaciones.length > 0">
+                            <thead>
+                                <tr class="category-tag">
+                                    <th>ID</th>
+                                    <th>TÍTULO</th>
+                                    <th>CATEGORÍA</th>
+                                    <th>ESTADO</th>
+                                    <th style="text-align: right;">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="pub in publicaciones" :key="pub.id_publicacion">
+                                    <td style="color: var(--muted-text);">#{{ pub.id_publicacion.toString().padStart(3,
+                                        '0') }}</td>
+                                    <td style="font-weight: 700;">{{ pub.titulo }}</td>
+                                    <td>{{ pub.nombre_categoria }}</td>
+                                    <td><span class="badge">{{ pub.estado_publicacion }}</span></td>
+                                    <td style="text-align: right; cursor: pointer; font-weight: 900;">⋮</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p v-else class="text-secondary text-center py-5">No tienes publicaciones aún.</p>
+                    </div>
                 </main>
             </div>
         </div>

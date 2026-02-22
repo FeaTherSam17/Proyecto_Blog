@@ -5,10 +5,18 @@ createApp({
         return {
             publicaciones: [],
             publicacionActual: null,
+            categorias: [],
             loginData: {
                 email: '',
                 contrasena: ''
             },
+            nuevaEntrada: {
+                titulo: '',
+                id_categoria: '',
+                texto_publicacion: ''
+            },
+            mostrarFormulario: false,
+            creandoPublicacion: false,
             errorMsg: '',
             cargando: false,
             usuarioActual: null
@@ -23,6 +31,7 @@ createApp({
             this.cargarPublicacionUnica();
         }
         if (window.location.pathname.includes('admin.html')) {
+            this.cargarCategorias();
             this.chequearAutenticacion();
             this.cargarPublicacionesAdmin();
         }
@@ -106,6 +115,45 @@ createApp({
                 window.location.href = '/login.html';
             } catch (err) {
                 console.error("Error cerrando sesión");
+            }
+        },
+        async cargarCategorias() {
+            try {
+                // Mock o fetch si se hace la ruta, por ahora manual si no hay ruta de categorías...
+                // Si preferimos, usamos un array estático o creamos un endpoint. 
+                // Crearemos un arreglo local ya que la tabla CATEGORIAS está vacía sin inserts iniciales
+                // Pero lo correcto es una llamada a bbdd. 
+                this.categorias = [
+                    { id_categoria: 1, nombre_categoria: 'TECNOLOGÍA' },
+                    { id_categoria: 2, nombre_categoria: 'BASE DE DATOS' },
+                    { id_categoria: 3, nombre_categoria: 'INGENIERÍA' }
+                ];
+            } catch (err) {
+                console.error('Error categorías');
+            }
+        },
+        async crearPublicacion() {
+            this.creandoPublicacion = true;
+            this.errorMsg = '';
+            try {
+                const res = await fetch('/api/admin/publicaciones', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.nuevaEntrada)
+                });
+
+                if (res.ok) {
+                    this.mostrarFormulario = false;
+                    this.nuevaEntrada = { titulo: '', id_categoria: '', texto_publicacion: '' };
+                    this.cargarPublicacionesAdmin(); // Recargar lista
+                } else {
+                    const data = await res.json();
+                    this.errorMsg = data.error || 'Error al crear la publicación';
+                }
+            } catch (err) {
+                this.errorMsg = 'Error al contactar con el servidor';
+            } finally {
+                this.creandoPublicacion = false;
             }
         },
         formatearFecha(fechaStr) {
