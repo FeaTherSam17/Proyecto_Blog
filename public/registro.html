@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro | PROYECTO_BLOG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="d-flex flex-column" style="min-height: 100vh; background-color: var(--cream-bg);">
+    <div id="app" class="flex-grow-1 d-flex align-items-center justify-content-center py-5">
+        <div class="login-card" style="width: 100%; max-width: 600px; padding: 3rem 2rem;">
+            
+            <h2 class="section-title text-center mb-4" style="font-size: 1.5rem;">REGISTRO DE AUTOR</h2>
+            
+            <form action="login.html">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="grid-column: span 2;">
+                        <label class="category-tag mb-2" style="font-size: 0.75rem;">NOMBRE *</label>
+                        <input type="text" class="form-control w-100" maxlength="50" required>
+                    </div>
+                    
+                    <div>
+                        <label class="category-tag mb-2" style="font-size: 0.75rem;">PRIMER APELLIDO</label>
+                        <input type="text" class="form-control w-100" maxlength="50">
+                    </div>
+                    
+                    <div>
+                        <label class="category-tag mb-2" style="font-size: 0.75rem;">SEGUNDO APELLIDO</label>
+                        <input type="text" class="form-control w-100" maxlength="50">
+                        <small class="text-secondary" style="font-size: 0.65rem;">(Debes llenar al menos un apellido)</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="category-tag mb-2" style="font-size: 0.75rem;">SEXO *</label>
+                    <select class="form-control w-100" required>
+                        <option value="" disabled selected>Selecciona una opción</option>
+                        <option value="M">Mujer</option>
+                        <option value="H">Hombre</option>
+                        <option value="O">Otro</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="category-tag mb-2" style="font-size: 0.75rem;">EMAIL *</label>
+                    <input type="email" class="form-control w-100" maxlength="150" pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="category-tag mb-2" style="font-size: 0.75rem;">TELÉFONO *</label>
+                    <input type="text" class="form-control w-100" pattern="^[0-9]{10}$" title="Debe contener exactamente 10 números" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="category-tag mb-2" style="font-size: 0.75rem;">BIOGRAFÍA *</label>
+                    <textarea class="form-control w-100" rows="3" maxlength="500" required></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="category-tag mb-2" style="font-size: 0.75rem;">CONTRASEÑA *</label>
+                    <input type="password" class="form-control w-100" required>
+                </div>
+
+                <button type="submit" class="btn-editorial w-100 mb-4" style="padding: 1rem;">CREAR CUENTA</button>
+                
+                <div class="text-center">
+                    <a href="login.html" class="category-tag" style="text-decoration: none; font-size: 0.75rem;">&larr; VOLVER AL ACCESO</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="js/vue-app.js"></script>
+</body>
+</html>

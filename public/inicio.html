@@ -9,41 +9,51 @@
 <body>
     <div id="app">
         <nav class="navbar sticky-top">
-            <div class="container d-flex align-items-center">
+            <div class="container d-flex align-items-center justify-content-between">
                 <a class="navbar-brand" href="inicio.html">PROYECTO_BLOG</a>
-                <div class="ms-auto d-flex align-items-center gap-3">
-                    <a href="inicio.html" class="nav-link">Inicio</a>
-                    <a href="login.html" class="btn-editorial">Acceso Autor</a>
+                <div class="d-flex align-items-center gap-4">
+                    <a href="inicio.html" class="nav-link">INICIO</a>
+                    <a href="login.html" class="btn-editorial">ACCESO AUTOR</a>
                 </div>
             </div>
         </nav>
 
         <header class="text-center py-5" style="background: white; border-bottom: 1px solid var(--border-soft);">
-            <h1 class="display-2">The Editorial</h1>
+            <h1 class="display-2" style="text-transform: uppercase;">THE EDITORIAL</h1>
             <p class="serif italic">Bases de datos, código y diseño minimalista.</p>
         </header>
 
         <main class="container py-5">
             <div class="grid-main">
                 <section>
-                    <h5 class="section-title mb-4">Publicaciones Recientes</h5>
-                    <a href="articulo.html" class="blog-card">
-                        <div class="category-tag">Tecnología • 18 Feb 2026</div>
-                        <h2>La Estética del Código Limpio</h2>
-                        <p class="text-secondary serif">La simplicidad es el orden en su forma más pura...</p>
+                    <h5 class="section-title mb-4">PUBLICACIONES RECIENTES</h5>
+                    
+                    <a href="articulo.html" class="blog-card" style="display: block; text-decoration: none; color: inherit;">
+                        <div class="category-tag mb-2">TECNOLOGÍA • 18 FEB 2026</div>
+                        <h2 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; margin-bottom: 1rem;">LA ESTÉTICA DEL CÓDIGO LIMPIO</h2>
+                        <p class="text-secondary serif" style="font-size: 1.1rem; margin-bottom: 1.5rem;">La simplicidad no es solo la ausencia de desorden, sino el orden en su forma más pura...</p>
+                        
+                        <div class="d-flex align-items-center justify-content-between mt-3" style="border-top: 1px solid var(--border-soft); padding-top: 1rem;">
+                            <span style="font-size: 0.74rem; font-weight: 900; text-transform: uppercase;">POR JUAN PEREZ</span>
+                            <span style="font-size: 0.75rem; font-weight: 900; text-transform: uppercase;">LEER MÁS &rarr;</span>
+                        </div>
                     </a>
                 </section>
+
                 <aside>
                     <div class="sidebar-box">
-                        <h6 class="section-title mb-3">Secciones</h6>
-                        <div class="category-tag">Base de Datos</div>
-                        <div class="category-tag">Ingeniería</div>
+                        <h6 class="section-title mb-4">SECCIONES</h6>
+                        <div class="d-flex flex-column gap-3">
+                            <a href="#" class="category-tag" style="text-decoration: none;">BASE DE DATOS</a>
+                            <a href="#" class="category-tag" style="text-decoration: none;">INGENIERÍA</a>
+                        </div>
                     </div>
                 </aside>
             </div>
         </main>
     </div>
+    
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script>const { createApp } = Vue; createApp({}).mount('#app');</script>
+    <script src="js/vue-app.js"></script>
 </body>
 </html>
