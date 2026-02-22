@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Artículo | Proyecto Blog</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div id="app">
         <nav class="navbar sticky-top">
@@ -15,31 +19,46 @@
         </nav>
 
         <main class="container py-5" style="max-width: 800px;">
-            <a href="inicio.html" class="category-tag mb-5" style="display: inline-block; text-decoration: none; font-size: 0.8rem;">
+            <a href="inicio.html" class="category-tag mb-5"
+                style="display: inline-block; text-decoration: none; font-size: 0.8rem;">
                 &larr; VOLVER AL LISTADO
             </a>
 
-            <header class="mb-5">
-                <div class="category-tag mb-3" style="font-size: 0.85rem;">TECNOLOGÍA</div>
-                <h1 class="display-3 mb-4" style="text-transform: uppercase;">LA ESTÉTICA DEL CÓDIGO LIMPIO</h1>
-                
-                <div class="d-flex align-items-center gap-3 py-3" style="border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft);">
-                    <div style="background:var(--dark-text); color:white; width:45px; height:45px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:900; font-family: 'Inter', sans-serif;">JP</div>
+            <header class="mb-5" v-if="publicacionActual">
+                <div class="category-tag mb-3" style="font-size: 0.85rem;">{{ publicacionActual.nombre_categoria }}
+                </div>
+                <h1 class="display-3 mb-4" style="text-transform: uppercase;">{{ publicacionActual.titulo }}</h1>
+
+                <div class="d-flex align-items-center gap-3 py-3"
+                    style="border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft);">
+                    <div
+                        style="background:var(--dark-text); color:white; width:45px; height:45px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:900; font-family: 'Inter', sans-serif;">
+                        {{ publicacionActual.autor_nombre.substring(0,2).toUpperCase() }}
+                    </div>
                     <div>
-                        <div style="font-weight: 900; font-size: 0.85rem; text-transform: uppercase;">JUAN PÉREZ</div>
-                        <div class="text-secondary" style="font-size: 0.8rem;">18 Feb 2026</div>
+                        <div style="font-weight: 900; font-size: 0.85rem; text-transform: uppercase;">{{
+                            publicacionActual.autor_nombre }}</div>
+                        <div class="text-secondary" style="font-size: 0.8rem;">{{
+                            formatearFecha(publicacionActual.fecha_publicacion) }}</div>
                     </div>
                 </div>
             </header>
 
-            <article class="serif fs-5" style="font-size: 1.2rem; color: #333;">
-                <p>La simplicidad es el orden en su forma más pura. En el desarrollo de software, esto se traduce en arquitecturas legibles.</p>
-                <p>Al diseñar sistemas, a menudo caemos en la trampa de la sobre-ingenieria.</p>
+            <article class="serif fs-5" style="font-size: 1.2rem; color: #333;" v-if="publicacionActual"
+                style="white-space: pre-line;">
+                <p>{{ publicacionActual.texto_publicacion }}</p>
             </article>
+            <div v-else-if="errorMsg" class="py-5 text-center">
+                <h2 class="text-danger">{{ errorMsg }}</h2>
+            </div>
+            <div v-else class="py-5 text-center">
+                <h2>Cargando...</h2>
+            </div>
         </main>
     </div>
-    
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="js/vue-app.js"></script>
 </body>
+
 </html>

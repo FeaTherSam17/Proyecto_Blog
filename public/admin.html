@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Admin | PROYECTO_BLOG</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div id="app">
         <nav class="navbar sticky-top">
             <div class="container d-flex align-items-center justify-content-between">
                 <a class="navbar-brand" href="inicio.html">PROYECTO_BLOG</a>
                 <div class="d-flex align-items-center gap-3">
-                    <span style="font-size: 0.8rem; font-weight: 700;">JUAN PÉREZ</span>
+                    <span style="font-size: 0.8rem; font-weight: 700;">{{ usuarioActual ?
+                        usuarioActual.nombre.toUpperCase() : '' }}</span>
                     <a href="inicio.html" class="btn-editorial">VER SITIO</a>
                 </div>
             </div>
@@ -22,12 +25,16 @@
             <div class="grid-admin">
                 <aside class="admin-sidebar" style="padding: 0; overflow: hidden;">
                     <div class="text-center py-4" style="border-bottom: 1px solid var(--border-soft);">
-                        <div style="background:var(--dark-text); color:white; width:60px; height:60px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:900;">JP</div>
-                        <p class="mt-3" style="font-weight: 700; margin-bottom: 0;">Juan Pérez</p>
+                        <div
+                            style="background:var(--dark-text); color:white; width:60px; height:60px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:900;">
+                            {{ usuarioActual ? usuarioActual.nombre.substring(0, 2).toUpperCase() : 'U' }}
+                        </div>
+                        <p class="mt-3" style="font-weight: 700; margin-bottom: 0;">{{ usuarioActual ?
+                            usuarioActual.nombre : 'Usuario' }}</p>
                     </div>
                     <div class="d-flex flex-column">
                         <a href="#" class="admin-menu-link active">Mis Publicaciones</a>
-                        <a href="login.html" class="admin-menu-link text-danger">Cerrar Sesión</a>
+                        <a href="#" @click.prevent="cerrarSesion" class="admin-menu-link text-danger">Cerrar Sesión</a>
                     </div>
                 </aside>
 
@@ -36,31 +43,36 @@
                         <h5 class="section-title mb-0">GESTIONAR CONTENIDO</h5>
                         <button class="btn-editorial">+ NUEVA ENTRADA</button>
                     </div>
-                    
-                    <table class="table">
+
+                    <table class="table" v-if="publicaciones.length > 0">
                         <thead>
                             <tr class="category-tag">
                                 <th>ID</th>
                                 <th>TÍTULO</th>
+                                <th>CATEGORÍA</th>
                                 <th>ESTADO</th>
                                 <th style="text-align: right;">ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td style="color: var(--muted-text);">#001</td>
-                                <td style="font-weight: 700;">La Estética del Código Limpio</td>
-                                <td><span class="badge">ACTIVO</span></td>
+                            <tr v-for="pub in publicaciones" :key="pub.id_publicacion">
+                                <td style="color: var(--muted-text);">#{{ pub.id_publicacion.toString().padStart(3, '0')
+                                    }}</td>
+                                <td style="font-weight: 700;">{{ pub.titulo }}</td>
+                                <td>{{ pub.nombre_categoria }}</td>
+                                <td><span class="badge">{{ pub.estado_publicacion }}</span></td>
                                 <td style="text-align: right; cursor: pointer; font-weight: 900;">⋮</td>
                             </tr>
                         </tbody>
                     </table>
+                    <p v-else class="text-secondary text-center py-5">No tienes publicaciones aún.</p>
                 </main>
             </div>
         </div>
     </div>
-    
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="js/vue-app.js"></script>
 </body>
+
 </html>

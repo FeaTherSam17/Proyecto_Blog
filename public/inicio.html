@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>PROYECTO_BLOG | Inicio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div id="app">
         <nav class="navbar sticky-top">
@@ -25,19 +29,32 @@
 
         <main class="container py-5">
             <div class="grid-main">
-                <section>
+                <section v-if="publicaciones.length > 0">
                     <h5 class="section-title mb-4">PUBLICACIONES RECIENTES</h5>
-                    
-                    <a href="articulo.html" class="blog-card" style="display: block; text-decoration: none; color: inherit;">
-                        <div class="category-tag mb-2">TECNOLOGÍA • 18 FEB 2026</div>
-                        <h2 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; margin-bottom: 1rem;">LA ESTÉTICA DEL CÓDIGO LIMPIO</h2>
-                        <p class="text-secondary serif" style="font-size: 1.1rem; margin-bottom: 1.5rem;">La simplicidad no es solo la ausencia de desorden, sino el orden en su forma más pura...</p>
-                        
-                        <div class="d-flex align-items-center justify-content-between mt-3" style="border-top: 1px solid var(--border-soft); padding-top: 1rem;">
-                            <span style="font-size: 0.74rem; font-weight: 900; text-transform: uppercase;">POR JUAN PEREZ</span>
-                            <span style="font-size: 0.75rem; font-weight: 900; text-transform: uppercase;">LEER MÁS &rarr;</span>
+
+                    <a v-for="pub in publicaciones" :key="pub.id_publicacion"
+                        :href="'articulo.html?id=' + pub.id_publicacion" class="blog-card"
+                        style="display: block; text-decoration: none; color: inherit; margin-bottom: 2rem;">
+                        <div class="category-tag mb-2">{{ pub.nombre_categoria }} • {{
+                            formatearFecha(pub.fecha_publicacion) }}</div>
+                        <h2
+                            style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; margin-bottom: 1rem;">
+                            {{ pub.titulo }}</h2>
+                        <p class="text-secondary serif" style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+                            {{ pub.texto_publicacion.substring(0, 150) }}...
+                        </p>
+
+                        <div class="d-flex align-items-center justify-content-between mt-3"
+                            style="border-top: 1px solid var(--border-soft); padding-top: 1rem;">
+                            <span style="font-size: 0.74rem; font-weight: 900; text-transform: uppercase;">POR {{
+                                pub.autor_nombre }}</span>
+                            <span style="font-size: 0.75rem; font-weight: 900; text-transform: uppercase;">LEER MÁS
+                                &rarr;</span>
                         </div>
                     </a>
+                </section>
+                <section v-else>
+                    <p class="text-secondary">No hay publicaciones disponibles.</p>
                 </section>
 
                 <aside>
@@ -52,8 +69,9 @@
             </div>
         </main>
     </div>
-    
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="js/vue-app.js"></script>
 </body>
+
 </html>
