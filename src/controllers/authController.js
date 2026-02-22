@@ -62,6 +62,7 @@ const login = async (req, res) => {
         // Guardar sesión
         req.session.usuarioId = autor.id_autor;
         req.session.usuarioNombre = autor.nombre;
+        req.session.usuarioEmail = autor.email;
 
         res.json({ mensaje: 'Login exitoso', redireccionar: '/admin.html' });
     } catch (error) {
