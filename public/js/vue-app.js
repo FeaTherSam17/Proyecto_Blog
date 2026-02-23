@@ -23,7 +23,6 @@ createApp({
         };
     },
     mounted() {
-        // App mounted — check route to fetch relevant data
         if (window.location.pathname.includes('inicio.html') || window.location.pathname === '/') {
             this.cargarPublicaciones();
         }
@@ -119,19 +118,18 @@ createApp({
         },
         async cargarCategorias() {
             try {
-                // Mock o fetch si se hace la ruta, por ahora manual si no hay ruta de categorías...
-                // Si preferimos, usamos un array estático o creamos un endpoint. 
-                // Crearemos un arreglo local ya que la tabla CATEGORIAS está vacía sin inserts iniciales
-                // Pero lo correcto es una llamada a bbdd. 
-                this.categorias = [
-                    { id_categoria: 1, nombre_categoria: 'TECNOLOGÍA' },
-                    { id_categoria: 2, nombre_categoria: 'BASE DE DATOS' },
-                    { id_categoria: 3, nombre_categoria: 'INGENIERÍA' }
-                ];
+                const res = await fetch('/api/blog/categorias');
+                if (res.ok) {
+                    this.categorias = await res.json();
+                } else {
+                    console.error('Error al obtener las categorías del servidor');
+                }
             } catch (err) {
-                console.error('Error categorías');
+                console.error('Error de red al cargar categorías:', err);
             }
         },
+
+        
         async crearPublicacion() {
             this.creandoPublicacion = true;
             this.errorMsg = '';

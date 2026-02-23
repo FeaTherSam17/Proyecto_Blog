@@ -26,7 +26,21 @@ const obtenerPorId = async (req, res) => {
     }
 };
 
+// Agregar esta función debajo de obtenerPorId
+const obtenerCategorias = async (req, res) => {
+    try {
+        const categorias = await articuloModel.obtenerCategorias();
+        res.json(categorias);
+    } catch (error) {
+        console.error('Error al obtener categorías:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+};
+
 module.exports = {
     obtenerTodas,
-    obtenerPorId
+    obtenerPorId,
+    obtenerCategorias // <-- Exportar la nueva función
 };
+
+

@@ -69,9 +69,27 @@ const crearPublicacion = async (publicacion) => {
     return result.rows[0];
 };
 
+
+// Obtener todas las categorías disponibles
+const obtenerCategorias = async () => {
+    const query = 'SELECT ID_CATEGORIA, NOMBRE_CATEGORIA FROM CATEGORIAS ORDER BY NOMBRE_CATEGORIA ASC';
+    const result = await pool.query(query);
+    return result.rows;
+};
+
+module.exports = {
+    obtenerPublicacionesActivas,
+    obtenerPublicacionPorId,
+    obtenerPublicacionesPorAutor,
+    crearPublicacion,
+    obtenerCategorias // <-- No olvides exportar la nueva función
+};
+
 module.exports = {
     obtenerPublicacionesActivas,
     obtenerPublicacionPorId,
     obtenerPublicacionesPorAutor,
     crearPublicacion
 };
+
+
