@@ -8,7 +8,7 @@ const obtenerPublicacionesActivas = async () => {
             P.TITULO, 
             P.FECHA_PUBLICACION, 
             P.TEXTO_PUBLICACION,
-            A.NOMBRE AS AUTOR_NOMBRE,
+            CONCAT_WS(' ', A.NOMBRE, A.PRIMER_APELLIDO, A.SEGUNDO_APELLIDO) AS AUTOR_NOMBRE,
             C.NOMBRE_CATEGORIA
         FROM PUBLICACIONES P
         INNER JOIN AUTORES A ON P.ID_AUTOR = A.ID_AUTOR
@@ -28,7 +28,7 @@ const obtenerPublicacionPorId = async (id) => {
             P.TITULO, 
             P.FECHA_PUBLICACION, 
             P.TEXTO_PUBLICACION,
-            A.NOMBRE AS AUTOR_NOMBRE,
+            CONCAT_WS(' ', A.NOMBRE, A.PRIMER_APELLIDO, A.SEGUNDO_APELLIDO) AS AUTOR_NOMBRE,
             C.NOMBRE_CATEGORIA
         FROM PUBLICACIONES P
         INNER JOIN AUTORES A ON P.ID_AUTOR = A.ID_AUTOR
@@ -72,7 +72,7 @@ const crearPublicacion = async (publicacion) => {
 
 // Obtener todas las categorías disponibles
 const obtenerCategorias = async () => {
-    const query = 'SELECT ID_CATEGORIA, NOMBRE_CATEGORIA FROM CATEGORIAS ORDER BY NOMBRE_CATEGORIA ASC';
+    const query = 'SELECT ID_CATEGORIA, NOMBRE_CATEGORIA, DESCRIPCION FROM CATEGORIAS ORDER BY NOMBRE_CATEGORIA ASC';
     const result = await pool.query(query);
     return result.rows;
 };
@@ -85,11 +85,5 @@ module.exports = {
     obtenerCategorias // <-- No olvides exportar la nueva función
 };
 
-module.exports = {
-    obtenerPublicacionesActivas,
-    obtenerPublicacionPorId,
-    obtenerPublicacionesPorAutor,
-    crearPublicacion
-};
 
 

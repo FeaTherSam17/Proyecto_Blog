@@ -59,10 +59,23 @@
 
                 <aside>
                     <div class="sidebar-box">
-                        <h6 class="section-title mb-4">SECCIONES</h6>
+                        <h6 class="section-title mb-4">CATEGORÍAS</h6>
                         <div class="d-flex flex-column gap-3">
-                            <a href="#" class="category-tag" style="text-decoration: none;">BASE DE DATOS</a>
-                            <a href="#" class="category-tag" style="text-decoration: none;">INGENIERÍA</a>
+                            <a href="#" 
+                               v-for="cat in categorias" 
+                               :key="cat.id_categoria" 
+                               @click.prevent="seleccionarCategoria(cat)"
+                               class="category-tag" 
+                               style="text-decoration: none;">
+                                {{ cat.nombre_categoria }}
+                            </a>
+                        </div>
+                        
+                        <div v-if="categoriaSeleccionada" class="mt-4 p-3" style="background: var(--cream-bg); border-left: 3px solid var(--dark-text);">
+                            <span class="category-tag mb-1" style="font-size: 0.65rem;">SOBRE ESTA SECCIÓN</span>
+                            <p class="serif mb-0" style="font-size: 0.85rem; color: var(--dark-text);">
+                                {{ categoriaSeleccionada.descripcion }}
+                            </p>
                         </div>
                     </div>
                 </aside>

@@ -8,8 +8,10 @@ CREATE DATABASE proyecto_blog;
 CREATE TABLE CAT_SEXOS (
     COD_SEXO CHAR(1) PRIMARY KEY,
     DESCRIPCION VARCHAR(20) NOT NULL,
-    CONSTRAINT CAT_SEXOS_DESC_UQ UNIQUE (DESCRIPCION)
+    CONSTRAINT CAT_SEXOS_DESC_UQ UNIQUE (DESCRIPCION)  
 );
+insert into CAT_SEXOS (COD_SEXO, DESCRIPCION) values ('M', 'Masculino');
+insert into CAT_SEXOS (COD_SEXO, DESCRIPCION) values ('F', 'Femenino');
 
 -- 3. TABLA: AUTORES
 CREATE TABLE AUTORES (
@@ -42,6 +44,12 @@ CREATE TABLE CATEGORIAS (
     CONSTRAINT CAT_NOMBRE_UQ UNIQUE (NOMBRE_CATEGORIA)
 );
 
+    insert into CATEGORIAS (NOMBRE_CATEGORIA, DESCRIPCION) values ('Tecnología', 'Publicaciones relacionadas con avances tecnológicos y gadgets.');
+    insert into CATEGORIAS (NOMBRE_CATEGORIA, DESCRIPCION) values ('Salud', 'Publicaciones sobre bienestar, nutrición y salud mental.');
+    insert into CATEGORIAS (NOMBRE_CATEGORIA, DESCRIPCION) values ('Viajes', 'Publicaciones que exploran destinos turísticos, consejos de viaje y experiencias culturales.');
+    insert into CATEGORIAS (NOMBRE_CATEGORIA, DESCRIPCION) values ('Educación', 'Publicaciones sobre métodos de enseñanza, recursos educativos y tendencias en educación.');
+    insert into CATEGORIAS (NOMBRE_CATEGORIA, DESCRIPCION) values ('Entretenimiento', 'Publicaciones sobre cine, música, televisión y cultura pop.');
+
 -- 5. TABLA: PUBLICACIONES
 CREATE TABLE PUBLICACIONES (
     ID_PUBLICACION SERIAL PRIMARY KEY,
@@ -56,3 +64,6 @@ CREATE TABLE PUBLICACIONES (
     CONSTRAINT PUB_ID_CATEGORIA_FK FOREIGN KEY (ID_CATEGORIA) REFERENCES CATEGORIAS (ID_CATEGORIA),
     CONSTRAINT PUB_ESTADO_CK CHECK (ESTADO_PUBLICACION IN ('ACTIVO', 'INACTIVO', 'PENDIENTE_VERIFICACION', 'SUSPENDIDO'))
 );
+
+
+

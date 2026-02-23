@@ -6,6 +6,7 @@ createApp({
             publicaciones: [],
             publicacionActual: null,
             categorias: [],
+            categoriaSeleccionada: null,
             loginData: {
                 email: '',
                 contrasena: ''
@@ -25,6 +26,7 @@ createApp({
     mounted() {
         if (window.location.pathname.includes('inicio.html') || window.location.pathname === '/') {
             this.cargarPublicaciones();
+            this.cargarCategorias();
         }
         if (window.location.pathname.includes('articulo.html')) {
             this.cargarPublicacionUnica();
@@ -129,7 +131,17 @@ createApp({
             }
         },
 
-        
+        seleccionarCategoria(cat) {
+            // Si hacemos clic en la categoría que ya está abierta, la cerramos
+            if (this.categoriaSeleccionada && this.categoriaSeleccionada.id_categoria === cat.id_categoria) {
+                this.categoriaSeleccionada = null;
+            } else {
+                // Si es una nueva, mostramos su información
+                this.categoriaSeleccionada = cat;
+            }
+        },
+
+
         async crearPublicacion() {
             this.creandoPublicacion = true;
             this.errorMsg = '';
