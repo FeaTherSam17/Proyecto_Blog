@@ -14,67 +14,67 @@
 
             <h2 class="section-title text-center mb-4" style="font-size: 1.5rem;">REGISTRO DE AUTOR</h2>
 
-            <form action="/api/auth/registro" method="POST">
+            <form @submit.prevent="hacerRegistro">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                     <div style="grid-column: span 2;">
                         <label class="category-tag mb-2" style="font-size: 0.75rem;">NOMBRE *</label>
-                        <input type="text" name="nombre" class="form-control w-100" maxlength="50" required>
+                        <input type="text" v-model="registroData.nombre" class="form-control w-100" maxlength="50" required>
                     </div>
 
                     <div>
                         <label class="category-tag mb-2" style="font-size: 0.75rem;">PRIMER APELLIDO</label>
-                        <input type="text" name="primer_apellido" class="form-control w-100" maxlength="50">
+                        <input type="text" v-model="registroData.primer_apellido" class="form-control w-100" maxlength="50">
                     </div>
 
                     <div>
                         <label class="category-tag mb-2" style="font-size: 0.75rem;">SEGUNDO APELLIDO</label>
-                        <input type="text" name="segundo_apellido" class="form-control w-100" maxlength="50">
-                        <small class="text-secondary" style="font-size: 0.65rem;">(Debes llenar al menos un
-                            apellido)</small>
+                        <input type="text" v-model="registroData.segundo_apellido" class="form-control w-100" maxlength="50">
+                        <small class="text-secondary" style="font-size: 0.65rem;">(Debes llenar al menos un apellido)</small>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="category-tag mb-2" style="font-size: 0.75rem;">SEXO *</label>
-                    <select name="cod_sexo" class="form-control w-100" required>
-                        <option value="" disabled selected>Selecciona una opción</option>
-                        <option value="M">Masculino</option>
-                        <option value="F">Femenino</option>
-
-                    </select>
+                    <select v-model="registroData.cod_sexo" class="form-control w-100" required>
+                    <option value="" disabled selected>Selecciona una opción</option>
+                    <option v-for="sexo in sexos" :key="sexo.cod_sexo" :value="sexo.cod_sexo">
+                        {{ sexo.descripcion }}
+                    </option>
+                </select>
                 </div>
 
                 <div class="mb-3">
                     <label class="category-tag mb-2" style="font-size: 0.75rem;">EMAIL *</label>
-                    <input type="email" name="email" class="form-control w-100" maxlength="150"
+                    <input type="email" v-model="registroData.email" class="form-control w-100" maxlength="150"
                         pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="category-tag mb-2" style="font-size: 0.75rem;">TELÉFONO *</label>
-                    <input type="text" name="telefono" class="form-control w-100" pattern="^[0-9]{10}$"
+                    <input type="text" v-model="registroData.telefono" class="form-control w-100" pattern="^[0-9]{10}$"
                         title="Debe contener exactamente 10 números" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="category-tag mb-2" style="font-size: 0.75rem;">BIOGRAFÍA *</label>
-                    <textarea name="biografia" class="form-control w-100" rows="3" maxlength="500" required></textarea>
+                    <textarea v-model="registroData.biografia" class="form-control w-100" rows="3" maxlength="500" required></textarea>
                 </div>
 
                 <div class="mb-4">
                     <label class="category-tag mb-2" style="font-size: 0.75rem;">CONTRASEÑA *</label>
-                    <input type="password" name="contrasena" class="form-control w-100" required>
+                    <input type="password" v-model="registroData.contrasena" class="form-control w-100" required>
                 </div>
 
-                <button type="submit" class="btn-editorial w-100 mb-4" style="padding: 1rem;">CREAR CUENTA</button>
+                <p v-if="errorMsg" class="text-danger mb-3" style="font-size: 0.8rem; text-align: center;">{{ errorMsg }}</p>
+
+                <button type="submit" class="btn-editorial w-100 mb-4" style="padding: 1rem;" :disabled="cargando">
+                    {{ cargando ? 'REGISTRANDO...' : 'CREAR CUENTA' }}
+                </button>
 
                 <div class="text-center">
-                    <a href="login.html" class="category-tag" style="text-decoration: none; font-size: 0.75rem;">&larr;
-                        VOLVER AL ACCESO</a>
+                    <a href="login.html" class="category-tag" style="text-decoration: none; font-size: 0.75rem;">&larr; VOLVER AL ACCESO</a>
                 </div>
             </form>
-        </div>
-    </div>
 
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="js/vue-app.js"></script>

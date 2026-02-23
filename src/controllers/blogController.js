@@ -40,7 +40,7 @@ const obtenerCategorias = async (req, res) => {
 module.exports = {
     obtenerTodas,
     obtenerPorId,
-    obtenerCategorias // <-- Exportar la nueva función
+    obtenerCategorias 
 };
 
 

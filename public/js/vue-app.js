@@ -7,8 +7,19 @@ createApp({
             publicacionActual: null,
             categorias: [],
             categoriaSeleccionada: null,
+            sexos: [],
             loginData: {
                 email: '',
+                contrasena: ''
+            },
+            registroData: {
+                nombre: '',
+                primer_apellido: '',
+                segundo_apellido: '',
+                cod_sexo: '',
+                email: '',
+                telefono: '',
+                biografia: '',
                 contrasena: ''
             },
             nuevaEntrada: {
@@ -35,6 +46,9 @@ createApp({
             this.cargarCategorias();
             this.chequearAutenticacion();
             this.cargarPublicacionesAdmin();
+        }
+        if (window.location.pathname.includes('registro.html')) {
+        this.cargarSexos();
         }
     },
     methods: {
@@ -85,6 +99,55 @@ createApp({
                 this.cargando = false;
             }
         },
+        async hacerRegistro() {
+            this.cargando = true;
+            this.errorMsg = '';
+
+            // VALIDACIÓN FRONTEND: Comprobamos antes de gastar recursos enviando al backend
+            if (!this.registroData.primer_apellido && !this.registroData.segundo_apellido) {
+                this.errorMsg = 'Por favor, proporciona al menos tu primer o segundo apellido.';
+                this.cargando = false;
+                return; // Detenemos la ejecución aquí
+            }
+
+            try {
+                const res = await fetch('/api/auth/registro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.registroData)
+                });
+                
+                const data = await res.json();
+
+                if (res.ok) {
+                    // Si el registro es exitoso, lo enviamos al login
+                    alert('¡Registro exitoso! Ahora puedes iniciar sesión.');
+                    window.location.href = '/login.html';
+                } else {
+                    // Si el backend devuelve un error (email repetido, faltan datos, etc.)
+                    this.errorMsg = data.error || 'Error al crear la cuenta';
+                }
+            } catch (err) {
+                this.errorMsg = 'Error al contactar con el servidor';
+            } finally {
+                this.cargando = false;
+            }
+        },
+
+        async cargarSexos() {
+            try {
+                const res = await fetch('/api/auth/sexos');
+                if (res.ok) {
+                    this.sexos = await res.json();
+                } else {
+                    console.error('Error al obtener los sexos del servidor');
+                }
+            } catch (err) {
+                console.error('Error de red al cargar sexos:', err);
+            }
+        },
+
+
         async chequearAutenticacion() {
             try {
                 const res = await fetch('/api/auth/me');

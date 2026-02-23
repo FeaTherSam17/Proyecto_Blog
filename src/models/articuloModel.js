@@ -82,7 +82,7 @@ module.exports = {
     obtenerPublicacionPorId,
     obtenerPublicacionesPorAutor,
     crearPublicacion,
-    obtenerCategorias // <-- No olvides exportar la nueva función
+    obtenerCategorias 
 };
 
 

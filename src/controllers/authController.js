@@ -10,6 +10,10 @@ const registrar = async (req, res) => {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });
         }
 
+        if (!primer_apellido && !segundo_apellido) {
+            return res.status(400).json({ error: 'Debes proporcionar al menos un apellido' });
+        }       
+
         // Revisar si el email ya existe
         const usuarioExistente = await usuarioModel.buscarAutorPorEmail(email);
         if (usuarioExistente) {
@@ -100,10 +104,21 @@ const obtenerUsuarioActual = async (req, res) => {
     }
 }
 
+const obtenerSexos = async (req, res) => {
+    try {
+        const sexos = await usuarioModel.obtenerSexos();
+        res.json(sexos);
+    } catch (error) {
+        console.error('Error al obtener sexos:', error);
+        res.status(500).json({ error: 'Error al obtener el catálogo de sexos' });
+    }
+};
+
 
 module.exports = {
     registrar,
     login,
     logout,
-    obtenerUsuarioActual
+    obtenerUsuarioActual,
+    obtenerSexos
 };

@@ -34,8 +34,15 @@ const obtenerAutorPorId = async (id_autor) => {
     return result.rows[0];
 };
 
+const obtenerSexos = async () => {
+    const query = 'SELECT COD_SEXO, DESCRIPCION FROM CAT_SEXOS ORDER BY DESCRIPCION ASC';
+    const result = await pool.query(query);
+    return result.rows;
+};
+
 module.exports = {
     registrarAutor,
     buscarAutorPorEmail,
-    obtenerAutorPorId
+    obtenerAutorPorId,
+    obtenerSexos
 };
