@@ -85,11 +85,17 @@ const obtenerUsuarioActual = async (req, res) => {
     if (!req.session.usuarioId) {
         return res.status(401).json({ error: 'No autenticado' });
     }
-
     try {
-        const autor = await usuarioModel.buscarAutorPorEmail(req.session.usuarioEmail); // Necesitaremos cambiar esto o usar id
-        res.json({ autor: { nombre: req.session.usuarioNombre, id: req.session.usuarioId } });
+        // 1. Usamos la función segura que busca por ID (no trae contraseñas)
+        const autor = await usuarioModel.obtenerAutorPorId(req.session.usuarioId); 
+        // 2. Por seguridad, validamos que el autor realmente exista
+        if (!autor) {
+            return res.status(404).json({ error: 'Autor no encontrado' });
+        }
+        // 3. Enviamos el objeto 'autor' completo a Vue
+        res.json({ autor: autor }); 
     } catch (err) {
+        console.error('Error al obtener el usuario actual:', err);
         res.status(500).json({ error: 'Error de servidor' });
     }
 }
