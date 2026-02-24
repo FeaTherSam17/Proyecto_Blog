@@ -12,6 +12,7 @@ CREATE TABLE CAT_SEXOS (
 );
 insert into CAT_SEXOS (COD_SEXO, DESCRIPCION) values ('M', 'Masculino');
 insert into CAT_SEXOS (COD_SEXO, DESCRIPCION) values ('F', 'Femenino');
+insert into CAT_SEXOS (COD_SEXO, DESCRIPCION) values ('P', 'Prueba 1');
 
 -- 3. TABLA: AUTORES
 CREATE TABLE AUTORES (
