@@ -8,7 +8,7 @@ const obtenerPublicacionesActivas = async () => {
             P.TITULO, 
             P.FECHA_PUBLICACION, 
             P.TEXTO_PUBLICACION,
-            CONCAT_WS(' ', A.NOMBRE, A.PRIMER_APELLIDO, A.SEGUNDO_APELLIDO) AS AUTOR_NOMBRE,
+            A.NOMBRE AS AUTOR_NOMBRE,
             C.NOMBRE_CATEGORIA
         FROM PUBLICACIONES P
         INNER JOIN AUTORES A ON P.ID_AUTOR = A.ID_AUTOR

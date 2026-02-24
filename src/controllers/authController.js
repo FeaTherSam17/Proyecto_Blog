@@ -96,8 +96,8 @@ const logout = (req, res) => {
         if (err) {
             return res.status(500).json({ error: 'Error al cerrar sesión' });
         }
-        res.clearCookie('connect.sid'); // Limpia la cookie de sesión por defecto de express-session
-        res.json({ mensaje: 'Sesión cerrada', redireccionar: '/login.html' });
+        res.clearCookie('connect.sid'); 
+        res.json({ mensaje: 'Sesión cerrada', redireccionar: '/inicio.html' }); 
     });
 };
 

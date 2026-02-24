@@ -180,14 +180,15 @@ createApp({
                 console.error("Error admin fetching", err);
             }
         },
-        async cerrarSesion() {
+       async cerrarSesion() {
             try {
                 await fetch('/api/auth/logout', { method: 'POST' });
-                window.location.href = '/login.html';
+                window.location.href = '/inicio.html'; // <-- CAMBIA ESTO AQUÍ
             } catch (err) {
                 console.error("Error cerrando sesión");
             }
         },
+        
         async cargarCategorias() {
             try {
                 const res = await fetch('/api/blog/categorias');
