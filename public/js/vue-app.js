@@ -38,6 +38,7 @@ createApp({
         if (window.location.pathname.includes('inicio.html') || window.location.pathname === '/') {
             this.cargarPublicaciones();
             this.cargarCategorias();
+            this.chequearAutenticacion();
         }
         if (window.location.pathname.includes('articulo.html')) {
             this.cargarPublicacionUnica();
@@ -48,7 +49,7 @@ createApp({
             this.cargarPublicacionesAdmin();
         }
         if (window.location.pathname.includes('registro.html')) {
-        this.cargarSexos();
+            this.cargarSexos();
         }
     },
     methods: {
@@ -151,16 +152,22 @@ createApp({
         async chequearAutenticacion() {
             try {
                 const res = await fetch('/api/auth/me');
-                if (!res.ok) {
-                    window.location.href = '/login.html';
-                } else {
+                if (res.ok) {
                     const data = await res.json();
                     this.usuarioActual = data.autor;
+                } else {
+                    // Solo redirige a login si estás en la página de admin
+                    if (window.location.pathname.includes('admin.html')) {
+                        window.location.href = '/login.html';
+                    }
                 }
             } catch (err) {
-                window.location.href = '/login.html';
+                if (window.location.pathname.includes('admin.html')) {
+                    window.location.href = '/login.html';
+                }
             }
         },
+        
         async cargarPublicacionesAdmin() {
             try {
                 const res = await fetch('/api/admin/panel');
