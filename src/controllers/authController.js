@@ -20,6 +20,22 @@ const registrar = async (req, res) => {
             return res.status(400).json({ error: 'El email ya está registrado' });
         }
 
+        const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: 'El formato del email es inválido' });
+        }
+
+        
+        const telefonoRegex = /^[0-9]{10}$/;
+        if (!telefonoRegex.test(telefono)) {
+            return res.status(400).json({ error: 'El teléfono debe tener exactamente 10 números' });
+        }
+
+        // Validar límite de biografía
+        if (biografia.length > 500) {
+            return res.status(400).json({ error: 'La biografía no puede exceder los 500 caracteres' });
+        }
+
         // Hashear contraseña
         const salt = await bcrypt.genSalt(10);
         const contrasenaHasheada = await bcrypt.hash(contrasena, salt);

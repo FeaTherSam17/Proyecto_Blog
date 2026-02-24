@@ -20,12 +20,18 @@ const crearPublicacion = async (req, res) => {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });
         }
 
+        if (titulo.length > 200) {
+            return res.status(400).json({ error: 'El título no puede exceder los 200 caracteres' });
+        }
+
         const nuevaPublicacion = {
             titulo,
             id_autor,
             id_categoria,
             texto_publicacion
         };
+
+        
 
         const resultado = await articuloModel.crearPublicacion(nuevaPublicacion);
         res.status(201).json({ mensaje: 'Publicación creada exitosamente', id: resultado.id_publicacion });
