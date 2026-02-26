@@ -40,16 +40,16 @@
 
                 <main class="sidebar-box">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <h5 class="section-title mb-0">{{ mostrarFormulario ? 'NUEVA ENTRADA' : 'GESTIONAR CONTENIDO' }}
+                        <h5 class="section-title mb-0">{{ mostrarFormulario ? (editandoPublicacionId ? 'EDITAR ENTRADA' : 'NUEVA ENTRADA') : 'GESTIONAR CONTENIDO' }}
                         </h5>
-                        <button class="btn-editorial" @click="mostrarFormulario = !mostrarFormulario">
+                        <button class="btn-editorial" @click="toggleFormulario">
                             {{ mostrarFormulario ? 'CANCELAR' : '+ NUEVA ENTRADA' }}
                         </button>
                     </div>
 
                     <!-- FORMULARIO NUEVA ENTRADA -->
                     <div v-if="mostrarFormulario">
-                        <form @submit.prevent="crearPublicacion" class="p-4"
+                        <form @submit.prevent="guardarPublicacion" class="p-4"
                             style="border: 1px solid var(--border-soft); background: white;">
                             <div class="mb-3">
                                 <label class="category-tag mb-2" style="font-size: 0.75rem;">TÍTULO</label>
@@ -76,7 +76,7 @@
                             <p v-if="errorMsg" class="text-danger" style="font-size: 0.8rem;">{{ errorMsg }}</p>
 
                             <button type="submit" class="btn-editorial" :disabled="creandoPublicacion">
-                                {{ creandoPublicacion ? 'PUBLICANDO...' : 'PUBLICAR ENTRADA' }}
+                                {{ creandoPublicacion ? 'GUARDANDO...' : (editandoPublicacionId ? 'GUARDAR CAMBIOS' : 'PUBLICAR ENTRADA') }}
                             </button>
                         </form>
                     </div>

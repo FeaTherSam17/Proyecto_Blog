@@ -31,7 +31,8 @@ createApp({
             creandoPublicacion: false,
             errorMsg: '',
             cargando: false,
-            usuarioActual: null
+            usuarioActual: null,
+            editandoPublicacionId: null
         };
     },
     mounted() {
@@ -213,19 +214,23 @@ createApp({
         },
 
 
-        async crearPublicacion() {
+        async guardarPublicacion() {
             this.creandoPublicacion = true;
             this.errorMsg = '';
             try {
-                const res = await fetch('/api/admin/publicaciones', {
-                    method: 'POST',
+                const url = this.editandoPublicacionId
+                    ? `/api/admin/publicaciones/${this.editandoPublicacionId}`
+                    : '/api/admin/publicaciones';
+                const method = this.editandoPublicacionId ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(this.nuevaEntrada)
                 });
 
                 if (res.ok) {
-                    this.mostrarFormulario = false;
-                    this.nuevaEntrada = { titulo: '', id_categoria: '', texto_publicacion: '' };
+                    this.resetFormulario();
                     this.cargarPublicacionesAdmin(); // Recargar lista
                 } else {
                     const data = await res.json();
@@ -236,6 +241,39 @@ createApp({
             } finally {
                 this.creandoPublicacion = false;
             }
+        },
+        async cargarPublicacionParaEditar(id_publicacion) {
+            this.errorMsg = '';
+            try {
+                const res = await fetch(`/api/admin/publicaciones/${id_publicacion}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    this.nuevaEntrada = {
+                        titulo: data.titulo || '',
+                        id_categoria: data.id_categoria || '',
+                        texto_publicacion: data.texto_publicacion || ''
+                    };
+                    this.editandoPublicacionId = id_publicacion;
+                    this.mostrarFormulario = true;
+                } else {
+                    const errData = await res.json();
+                    this.errorMsg = errData.error || 'Error al cargar la publicación';
+                }
+            } catch (err) {
+                this.errorMsg = 'Error al contactar con el servidor';
+            }
+        },
+        resetFormulario() {
+            this.mostrarFormulario = false;
+            this.editandoPublicacionId = null;
+            this.nuevaEntrada = { titulo: '', id_categoria: '', texto_publicacion: '' };
+        },
+        toggleFormulario() {
+            if (this.mostrarFormulario) {
+                this.resetFormulario();
+                return;
+            }
+            this.mostrarFormulario = true;
         },
         async eliminarPublicacion(id_publicacion) {
             if (!confirm('¿Deseas eliminar esta publicación?')) return;
@@ -267,8 +305,7 @@ createApp({
     event.target.value = "";
 
     if (accion === "editar") {
-        this.nuevaEntrada = { ...pub };
-        this.mostrarFormulario = true;
+        this.cargarPublicacionParaEditar(pub.id_publicacion);
         return;
     }
 

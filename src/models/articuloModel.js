@@ -49,11 +49,26 @@ const obtenerPublicacionesPorAutor = async (id_autor) => {
             C.NOMBRE_CATEGORIA
         FROM PUBLICACIONES P
         INNER JOIN CATEGORIAS C ON P.ID_CATEGORIA = C.ID_CATEGORIA
-        WHERE P.ID_AUTOR = $1 AND P.ESTADO_PUBLICACION = 'ACTIVO'
+        WHERE P.ID_AUTOR = $1
         ORDER BY P.FECHA_PUBLICACION DESC
     `;
     const result = await pool.query(query, [id_autor]);
     return result.rows;
+};
+
+// Obtener una publicación de un autor para edición
+const obtenerPublicacionPorAutorId = async (id_publicacion, id_autor) => {
+    const query = `
+        SELECT 
+            P.ID_PUBLICACION,
+            P.TITULO,
+            P.ID_CATEGORIA,
+            P.TEXTO_PUBLICACION
+        FROM PUBLICACIONES P
+        WHERE P.ID_PUBLICACION = $1 AND P.ID_AUTOR = $2
+    `;
+    const result = await pool.query(query, [id_publicacion, id_autor]);
+    return result.rows[0];
 };
 
 // Crear una nueva publicación
@@ -73,11 +88,27 @@ const crearPublicacion = async (publicacion) => {
 const eliminarPublicacion = async (id_publicacion, id_autor) => {
     const query = `
         UPDATE PUBLICACIONES
-        SET ESTADO_PUBLICACION = 'INACTIVO'
+        SET ESTADO_PUBLICACION = 'SUSPENDIDO'
         WHERE ID_PUBLICACION = $1 AND ID_AUTOR = $2
         RETURNING ID_PUBLICACION
     `;
     const result = await pool.query(query, [id_publicacion, id_autor]);
+    return result.rows[0];
+};
+
+// Actualizar publicación (solo del autor)
+const actualizarPublicacion = async (id_publicacion, id_autor, datos) => {
+    const { titulo, id_categoria, texto_publicacion } = datos;
+    const query = `
+        UPDATE PUBLICACIONES
+        SET TITULO = $1,
+            ID_CATEGORIA = $2,
+            TEXTO_PUBLICACION = $3
+        WHERE ID_PUBLICACION = $4 AND ID_AUTOR = $5
+        RETURNING ID_PUBLICACION
+    `;
+    const values = [titulo, id_categoria, texto_publicacion, id_publicacion, id_autor];
+    const result = await pool.query(query, values);
     return result.rows[0];
 };
 
@@ -93,8 +124,10 @@ module.exports = {
     obtenerPublicacionesActivas,
     obtenerPublicacionPorId,
     obtenerPublicacionesPorAutor,
+    obtenerPublicacionPorAutorId,
     crearPublicacion,
     eliminarPublicacion,
+    actualizarPublicacion,
     obtenerCategorias 
 };
 

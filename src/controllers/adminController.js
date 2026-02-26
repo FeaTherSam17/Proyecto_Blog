@@ -63,8 +63,66 @@ const eliminarPublicacion = async (req, res) => {
     }
 };
 
+const obtenerPublicacionParaEditar = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const id_autor = req.session.usuarioId;
+
+        if (!id) {
+            return res.status(400).json({ error: 'ID de publicación requerido' });
+        }
+
+        const publicacion = await articuloModel.obtenerPublicacionPorAutorId(id, id_autor);
+        if (!publicacion) {
+            return res.status(404).json({ error: 'Publicación no encontrada' });
+        }
+
+        res.json(publicacion);
+    } catch (error) {
+        console.error('Error al obtener publicación para editar:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+};
+
+const actualizarPublicacion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { titulo, id_categoria, texto_publicacion } = req.body;
+        const id_autor = req.session.usuarioId;
+
+        if (!id) {
+            return res.status(400).json({ error: 'ID de publicación requerido' });
+        }
+
+        if (!titulo || !id_categoria || !texto_publicacion) {
+            return res.status(400).json({ error: 'Faltan campos obligatorios' });
+        }
+
+        if (titulo.length > 200) {
+            return res.status(400).json({ error: 'El título no puede exceder los 200 caracteres' });
+        }
+
+        const resultado = await articuloModel.actualizarPublicacion(id, id_autor, {
+            titulo,
+            id_categoria,
+            texto_publicacion
+        });
+
+        if (!resultado) {
+            return res.status(404).json({ error: 'Publicación no encontrada' });
+        }
+
+        res.json({ mensaje: 'Publicación actualizada' });
+    } catch (error) {
+        console.error('Error al actualizar publicación:', error);
+        res.status(500).json({ error: 'Error interno del servidor al actualizar' });
+    }
+};
+
 module.exports = {
     panelAdmin,
     crearPublicacion,
-    eliminarPublicacion
+    eliminarPublicacion,
+    obtenerPublicacionParaEditar,
+    actualizarPublicacion
 };
