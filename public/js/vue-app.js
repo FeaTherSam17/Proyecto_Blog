@@ -259,6 +259,23 @@ createApp({
         formatearFecha(fechaStr) {
             const fecha = new Date(fechaStr);
             return fecha.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }).toUpperCase();
-        }
+        },
+        accionPublicacion(event, pub) {
+    const accion = event.target.value;
+
+    // Regresar el "combo" a ACCIONES después de elegir
+    event.target.value = "";
+
+    if (accion === "editar") {
+        this.nuevaEntrada = { ...pub };
+        this.mostrarFormulario = true;
+        return;
+    }
+
+    if (accion === "eliminar") {
+        this.eliminarPublicacion(pub.id_publicacion);
+        return;
+    }
+},
     }
 }).mount('#app');

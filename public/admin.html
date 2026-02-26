@@ -102,12 +102,17 @@
                                     </td>
                                     <td>{{ pub.nombre_categoria }}</td>
                                     <td><span class="badge">{{ pub.estado_publicacion }}</span></td>
-                                    <td style="text-align: right;">
-                                        <button class="btn-editorial" style="padding: 6px 10px;"
-                                            @click="eliminarPublicacion(pub.id_publicacion)">
-                                            ELIMINAR
-                                        </button>
-                                    </td>
+                                    
+<td style="text-align: right;">
+  <select class="btn-editorial"
+          style="padding: 8px 12px; cursor: pointer;"
+          @change="accionPublicacion($event, pub)">
+    <option value="" selected>ACCIONES</option>
+    <option value="editar">Editar</option>
+    <option value="eliminar">Eliminar</option>
+  </select>
+</td>
+
                                 </tr>
                             </tbody>
                         </table>
