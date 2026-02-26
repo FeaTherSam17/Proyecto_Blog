@@ -14,6 +14,22 @@ const registrar = async (req, res) => {
             return res.status(400).json({ error: 'Debes proporcionar al menos un apellido' });
         }       
 
+        if (nombre.length > 50) {
+            return res.status(400).json({ error: 'El nombre no puede exceder los 50 caracteres' });
+        }
+        
+        if (primer_apellido && primer_apellido.length > 50) {
+            return res.status(400).json({ error: 'El primer apellido no puede exceder los 50 caracteres' });
+        }
+        
+        if (segundo_apellido && segundo_apellido.length > 50) {
+            return res.status(400).json({ error: 'El segundo apellido no puede exceder los 50 caracteres' });
+        }
+
+        if (email.length > 150) {
+            return res.status(400).json({ error: 'El email no puede exceder los 150 caracteres' });
+        }
+
         // Revisar si el email ya existe
         const usuarioExistente = await usuarioModel.buscarAutorPorEmail(email);
         if (usuarioExistente) {

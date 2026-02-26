@@ -22,6 +22,13 @@ body {
     min-height: 100vh;
 }
 
+/* Prevenir que textos largos sin espacios rompan el diseño */
+h1, h2, h3, h4, h5, h6, p, td {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+
 /* --- TIPOGRAFÍA --- */
 h1, h2, h3, h4, h5, .navbar-brand, .section-title {
     font-family: 'Inter', sans-serif;
@@ -192,6 +199,12 @@ h1, h2, h3, h4, h5, .navbar-brand, .section-title {
 
 .table th {
     background-color: #fcfcfc;
+    /* Estilos copiados de category-tag para mantener el diseño */
+    font-size: 0.75rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--muted-text);
+    letter-spacing: 1.5px;
 }
 
 .badge { 

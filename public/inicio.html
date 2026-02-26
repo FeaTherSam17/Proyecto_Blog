@@ -40,9 +40,9 @@
                             formatearFecha(pub.fecha_publicacion) }}</div>
                         <h2
                             style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; margin-bottom: 1rem;">
-                            {{ pub.titulo }}</h2>
+                            {{ pub.titulo.substring(0, 50) }}...</h2>
                         <p class="text-secondary serif" style="font-size: 1.1rem; margin-bottom: 1.5rem;">
-                            {{ pub.texto_publicacion.substring(0, 150) }}...
+                            {{ pub.texto_publicacion.substring(0, 50) }}...
                         </p>
 
                         <div class="d-flex align-items-center justify-content-between mt-3"
