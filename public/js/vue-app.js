@@ -237,6 +237,25 @@ createApp({
                 this.creandoPublicacion = false;
             }
         },
+        async eliminarPublicacion(id_publicacion) {
+            if (!confirm('¿Deseas eliminar esta publicación?')) return;
+
+            this.errorMsg = '';
+            try {
+                const res = await fetch(`/api/admin/publicaciones/${id_publicacion}`, {
+                    method: 'DELETE'
+                });
+
+                if (res.ok) {
+                    this.cargarPublicacionesAdmin();
+                } else {
+                    const data = await res.json();
+                    this.errorMsg = data.error || 'Error al eliminar la publicación';
+                }
+            } catch (err) {
+                this.errorMsg = 'Error al contactar con el servidor';
+            }
+        },
         formatearFecha(fechaStr) {
             const fecha = new Date(fechaStr);
             return fecha.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }).toUpperCase();

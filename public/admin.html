@@ -102,7 +102,12 @@
                                     </td>
                                     <td>{{ pub.nombre_categoria }}</td>
                                     <td><span class="badge">{{ pub.estado_publicacion }}</span></td>
-                                    <td style="text-align: right; cursor: pointer; font-weight: 900;">⋮</td>
+                                    <td style="text-align: right;">
+                                        <button class="btn-editorial" style="padding: 6px 10px;"
+                                            @click="eliminarPublicacion(pub.id_publicacion)">
+                                            ELIMINAR
+                                        </button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

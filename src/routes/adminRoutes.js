@@ -16,5 +16,6 @@ router.use(requerirAutenticacion);
 // Rutas privadas
 router.get('/panel', adminController.panelAdmin);
 router.post('/publicaciones', adminController.crearPublicacion);
+router.delete('/publicaciones/:id', adminController.eliminarPublicacion);
 
 module.exports = router;

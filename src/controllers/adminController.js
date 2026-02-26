@@ -42,7 +42,29 @@ const crearPublicacion = async (req, res) => {
     }
 };
 
+const eliminarPublicacion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const id_autor = req.session.usuarioId;
+
+        if (!id) {
+            return res.status(400).json({ error: 'ID de publicación requerido' });
+        }
+
+        const resultado = await articuloModel.eliminarPublicacion(id, id_autor);
+        if (!resultado) {
+            return res.status(404).json({ error: 'Publicación no encontrada' });
+        }
+
+        res.json({ mensaje: 'Publicación eliminada' });
+    } catch (error) {
+        console.error('Error al eliminar publicación:', error);
+        res.status(500).json({ error: 'Error interno del servidor al eliminar' });
+    }
+};
+
 module.exports = {
     panelAdmin,
-    crearPublicacion
+    crearPublicacion,
+    eliminarPublicacion
 };

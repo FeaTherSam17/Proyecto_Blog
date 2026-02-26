@@ -49,7 +49,7 @@ const obtenerPublicacionesPorAutor = async (id_autor) => {
             C.NOMBRE_CATEGORIA
         FROM PUBLICACIONES P
         INNER JOIN CATEGORIAS C ON P.ID_CATEGORIA = C.ID_CATEGORIA
-        WHERE P.ID_AUTOR = $1
+        WHERE P.ID_AUTOR = $1 AND P.ESTADO_PUBLICACION = 'ACTIVO'
         ORDER BY P.FECHA_PUBLICACION DESC
     `;
     const result = await pool.query(query, [id_autor]);
@@ -69,6 +69,18 @@ const crearPublicacion = async (publicacion) => {
     return result.rows[0];
 };
 
+// Marcar una publicación como inactiva (eliminación lógica)
+const eliminarPublicacion = async (id_publicacion, id_autor) => {
+    const query = `
+        UPDATE PUBLICACIONES
+        SET ESTADO_PUBLICACION = 'INACTIVO'
+        WHERE ID_PUBLICACION = $1 AND ID_AUTOR = $2
+        RETURNING ID_PUBLICACION
+    `;
+    const result = await pool.query(query, [id_publicacion, id_autor]);
+    return result.rows[0];
+};
+
 
 // Obtener todas las categorías disponibles
 const obtenerCategorias = async () => {
@@ -82,6 +94,7 @@ module.exports = {
     obtenerPublicacionPorId,
     obtenerPublicacionesPorAutor,
     crearPublicacion,
+    eliminarPublicacion,
     obtenerCategorias 
 };
 
