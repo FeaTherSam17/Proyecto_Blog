@@ -65,7 +65,9 @@ const obtenerPublicacionPorAutorId = async (id_publicacion, id_autor) => {
             P.ID_CATEGORIA,
             P.TEXTO_PUBLICACION
         FROM PUBLICACIONES P
-        WHERE P.ID_PUBLICACION = $1 AND P.ID_AUTOR = $2
+        WHERE P.ID_PUBLICACION = $1
+            AND P.ID_AUTOR = $2
+            AND P.ESTADO_PUBLICACION <> 'ELIMINADO'
     `;
     const result = await pool.query(query, [id_publicacion, id_autor]);
     return result.rows[0];
@@ -88,7 +90,7 @@ const crearPublicacion = async (publicacion) => {
 const eliminarPublicacion = async (id_publicacion, id_autor) => {
     const query = `
         UPDATE PUBLICACIONES
-        SET ESTADO_PUBLICACION = 'SUSPENDIDO'
+        SET ESTADO_PUBLICACION = 'ELIMINADO'
         WHERE ID_PUBLICACION = $1 AND ID_AUTOR = $2
         RETURNING ID_PUBLICACION
     `;
@@ -104,7 +106,9 @@ const actualizarPublicacion = async (id_publicacion, id_autor, datos) => {
         SET TITULO = $1,
             ID_CATEGORIA = $2,
             TEXTO_PUBLICACION = $3
-        WHERE ID_PUBLICACION = $4 AND ID_AUTOR = $5
+        WHERE ID_PUBLICACION = $4
+            AND ID_AUTOR = $5
+            AND ESTADO_PUBLICACION <> 'ELIMINADO'
         RETURNING ID_PUBLICACION
     `;
     const values = [titulo, id_categoria, texto_publicacion, id_publicacion, id_autor];
