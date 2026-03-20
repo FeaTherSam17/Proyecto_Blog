@@ -91,6 +91,10 @@ createApp({
                 const data = await res.json();
 
                 if (res.ok) {
+                    this.usuarioActual = {
+                        email: this.loginData.email,
+                        rol: data.rol
+                    };
                     window.location.href = data.redireccionar;
                 } else {
                     this.errorMsg = data.error || 'Autenticación fallida';
@@ -155,7 +159,7 @@ createApp({
                 const res = await fetch('/api/auth/me');
                 if (res.ok) {
                     const data = await res.json();
-                    this.usuarioActual = data.autor;
+                    this.usuarioActual = data.usuario || data.autor;
                 } else {
                     // Solo redirige a login si estás en la página de admin
                     if (window.location.pathname.includes('admin.html')) {

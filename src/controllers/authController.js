@@ -31,7 +31,7 @@ const registrar = async (req, res) => {
         }
 
         // Revisar si el email ya existe
-        const usuarioExistente = await usuarioModel.buscarAutorPorEmail(email);
+        const usuarioExistente = await usuarioModel.buscarUsuarioPorEmail(email);
         if (usuarioExistente) {
             return res.status(400).json({ error: 'El email ya está registrado' });
         }
@@ -84,23 +84,29 @@ const login = async (req, res) => {
             return res.status(400).json({ error: 'Email y contraseña son requeridos' });
         }
 
-        const autor = await usuarioModel.buscarAutorPorEmail(email);
-        if (!autor) {
+        const usuario = await usuarioModel.buscarUsuarioPorEmail(email);
+        if (!usuario) {
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
+        if (usuario.estado_usuario !== 'ACTIVO') {
+            return res.status(403).json({ error: 'Usuario inactivo' });
+        }
+
         // Verificar contraseña
-        const esValida = await bcrypt.compare(contrasena, autor.contrasena);
+        const esValida = await bcrypt.compare(contrasena, usuario.contrasena);
         if (!esValida) {
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
         // Guardar sesión
-        req.session.usuarioId = autor.id_autor;
-        req.session.usuarioNombre = autor.nombre;
-        req.session.usuarioEmail = autor.email;
+        req.session.usuarioId = usuario.id_usuario;
+        req.session.usuarioNombre = usuario.nombre;
+        req.session.usuarioEmail = usuario.email;
+        req.session.usuarioRol = usuario.rol;
 
-        res.json({ mensaje: 'Login exitoso', redireccionar: '/admin.html' });
+        const redireccionar = '/admin.html';
+        res.json({ mensaje: 'Login exitoso', redireccionar, rol: usuario.rol });
     } catch (error) {
         console.error('Error en login:', error);
         res.status(500).json({ error: 'Error interno del servidor en el login' });
@@ -122,14 +128,11 @@ const obtenerUsuarioActual = async (req, res) => {
         return res.status(401).json({ error: 'No autenticado' });
     }
     try {
-        // 1. Usamos la función segura que busca por ID (no trae contraseñas)
-        const autor = await usuarioModel.obtenerAutorPorId(req.session.usuarioId); 
-        // 2. Por seguridad, validamos que el autor realmente exista
-        if (!autor) {
-            return res.status(404).json({ error: 'Autor no encontrado' });
+        const usuario = await usuarioModel.obtenerAutorPorId(req.session.usuarioId);
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
         }
-        // 3. Enviamos el objeto 'autor' completo a Vue
-        res.json({ autor: autor }); 
+        res.json({ usuario: usuario });
     } catch (err) {
         console.error('Error al obtener el usuario actual:', err);
         res.status(500).json({ error: 'Error de servidor' });
