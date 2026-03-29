@@ -32,7 +32,57 @@ createApp({
             errorMsg: '',
             cargando: false,
             usuarioActual: null,
-            editandoPublicacionId: null
+            editandoPublicacionId: null,
+            seccionPanel: 'publicaciones',
+            mostrarModalAutorPanel: false,
+            filtrosPublicacionesPanel: {
+                autor: '',
+                estatus: '',
+                fechaDesde: '',
+                fechaHasta: ''
+            },
+            filtroAutoresPanel: '',
+            publicacionesPanel: [
+                { id: 1, titulo: 'Introduccion a NoSQL', autor: 'ANA PEREZ', fecha: '2026-03-12', estatus: 'ACTIVO' },
+                { id: 2, titulo: 'Modelado de Documentos', autor: 'LUIS RAMOS', fecha: '2026-02-28', estatus: 'BORRADOR' },
+                { id: 3, titulo: 'Indices y Rendimiento', autor: 'CARLA NUNEZ', fecha: '2026-01-18', estatus: 'INACTIVO' }
+            ],
+            autoresPanel: [
+                {
+                    id: 1,
+                    nombre: 'ANA',
+                    primer_apellido: 'PEREZ',
+                    segundo_apellido: 'LOPEZ',
+                    sexo: 'F',
+                    email: 'ana@blog.com',
+                    telefono: '9991234567',
+                    biografia: 'Editora y autora de tecnologia.',
+                    contrasena: '******',
+                    estatus: 'ACTIVO'
+                },
+                {
+                    id: 2,
+                    nombre: 'LUIS',
+                    primer_apellido: 'RAMOS',
+                    segundo_apellido: 'DIAZ',
+                    sexo: 'M',
+                    email: 'luis@blog.com',
+                    telefono: '9995551122',
+                    biografia: 'Redactor de bases de datos.',
+                    contrasena: '******',
+                    estatus: 'ACTIVO'
+                }
+            ],
+            nuevoAutorPanel: {
+                nombre: '',
+                primer_apellido: '',
+                segundo_apellido: '',
+                sexo: '',
+                email: '',
+                telefono: '',
+                biografia: '',
+                contrasena: ''
+            }
         };
     },
     mounted() {
@@ -51,6 +101,38 @@ createApp({
         }
         if (window.location.pathname.includes('registro.html')) {
             this.cargarSexos();
+        }
+        if (window.location.pathname.includes('adminPanel.html')) {
+            this.seccionPanel = 'publicaciones';
+        }
+    },
+    computed: {
+        publicacionesFiltradasPanel() {
+            return this.publicacionesPanel.filter((pub) => {
+                const autor = (this.filtrosPublicacionesPanel.autor || '').toUpperCase().trim();
+                const estatus = this.filtrosPublicacionesPanel.estatus || '';
+                const fechaDesde = this.filtrosPublicacionesPanel.fechaDesde || '';
+                const fechaHasta = this.filtrosPublicacionesPanel.fechaHasta || '';
+
+                const coincideAutor = !autor || pub.autor.toUpperCase().includes(autor);
+                const coincideEstatus = !estatus || pub.estatus === estatus;
+                const coincideFechaDesde = !fechaDesde || pub.fecha >= fechaDesde;
+                const coincideFechaHasta = !fechaHasta || pub.fecha <= fechaHasta;
+
+                return coincideAutor && coincideEstatus && coincideFechaDesde && coincideFechaHasta;
+            });
+        },
+        autoresFiltradosPanel() {
+            const termino = (this.filtroAutoresPanel || '').toUpperCase().trim();
+            if (!termino) {
+                return this.autoresPanel;
+            }
+
+            return this.autoresPanel.filter((autor) => {
+                const nombreCompleto = this.nombreCompletoAutorPanel(autor).toUpperCase();
+                const email = (autor.email || '').toUpperCase();
+                return nombreCompleto.includes(termino) || email.includes(termino);
+            });
         }
     },
     methods: {
@@ -318,5 +400,48 @@ createApp({
         return;
     }
 },
+        setSeccionPanel(seccion) {
+            this.seccionPanel = seccion;
+        },
+        abrirModalAutorPanel() {
+            this.mostrarModalAutorPanel = true;
+        },
+        cerrarModalAutorPanel() {
+            this.mostrarModalAutorPanel = false;
+            this.nuevoAutorPanel = {
+                nombre: '',
+                primer_apellido: '',
+                segundo_apellido: '',
+                sexo: '',
+                email: '',
+                telefono: '',
+                biografia: '',
+                contrasena: ''
+            };
+        },
+        nombreCompletoAutorPanel(autor) {
+            return `${autor.nombre || ''} ${autor.primer_apellido || ''} ${autor.segundo_apellido || ''}`.replace(/\s+/g, ' ').trim();
+        },
+        guardarAutorPanel() {
+            const nuevo = {
+                id: this.autoresPanel.length + 1,
+                nombre: this.nuevoAutorPanel.nombre.trim().toUpperCase(),
+                primer_apellido: this.nuevoAutorPanel.primer_apellido.trim().toUpperCase(),
+                segundo_apellido: this.nuevoAutorPanel.segundo_apellido.trim().toUpperCase(),
+                sexo: this.nuevoAutorPanel.sexo,
+                email: this.nuevoAutorPanel.email.trim(),
+                telefono: this.nuevoAutorPanel.telefono.trim(),
+                biografia: this.nuevoAutorPanel.biografia.trim(),
+                contrasena: this.nuevoAutorPanel.contrasena,
+                estatus: 'ACTIVO'
+            };
+
+            const completo = nuevo.nombre && nuevo.primer_apellido && nuevo.segundo_apellido && nuevo.sexo && nuevo.email && nuevo.telefono && nuevo.biografia && nuevo.contrasena;
+            if (!completo) return;
+
+            this.autoresPanel.unshift(nuevo);
+            this.seccionPanel = 'autores';
+            this.cerrarModalAutorPanel();
+        },
     }
 }).mount('#app');
