@@ -1,9 +1,16 @@
 const articuloModel = require('../models/articuloModel');
+const usuarioModel = require('../models/usuarioModel');
 
 const panelAdmin = async (req, res) => {
     try {
         const id_autor = req.session.usuarioId;
-        const publicaciones = await articuloModel.obtenerPublicacionesPorAutor(id_autor);
+        const filtros = {
+            autor: req.query.autor,
+            estatus: req.query.estatus,
+            fechaDesde: req.query.fechaDesde,
+            fechaHasta: req.query.fechaHasta
+        };
+        const publicaciones = await articuloModel.obtenerPublicacionesPorAutor(id_autor, filtros);
         res.json(publicaciones);
     } catch (error) {
         console.error('Error al obtener el panel de admin:', error);
@@ -119,10 +126,22 @@ const actualizarPublicacion = async (req, res) => {
     }
 };
 
+const listarAutores = async (req, res) => {
+    try {
+        const q = req.query.q || '';
+        const autores = await usuarioModel.obtenerAutores(q);
+        res.json(autores);
+    } catch (error) {
+        console.error('Error al obtener autores para el panel:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+};
+
 module.exports = {
     panelAdmin,
     crearPublicacion,
     eliminarPublicacion,
     obtenerPublicacionParaEditar,
-    actualizarPublicacion
+    actualizarPublicacion,
+    listarAutores
 };

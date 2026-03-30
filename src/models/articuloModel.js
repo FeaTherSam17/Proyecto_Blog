@@ -42,19 +42,50 @@ const obtenerPublicacionPorId = async (id) => {
 };
 
 // Obtener publicaciones de un autor específico (para panel de admin)
-const obtenerPublicacionesPorAutor = async (id_autor) => {
+const obtenerPublicacionesPorAutor = async (id_autor, filtros = {}) => {
+    const condiciones = ['P.ID_AUTOR = $1'];
+    const values = [id_autor];
+    let paramIndex = 2;
+
+    if (filtros.autor && filtros.autor.trim()) {
+        condiciones.push(`UPPER(CONCAT_WS(' ', U.NOMBRE, U.PRIMER_APELLIDO, U.SEGUNDO_APELLIDO)) LIKE UPPER($${paramIndex})`);
+        values.push(`%${filtros.autor.trim()}%`);
+        paramIndex += 1;
+    }
+
+    if (filtros.estatus && filtros.estatus.trim()) {
+        condiciones.push(`P.ESTADO_PUBLICACION = $${paramIndex}`);
+        values.push(filtros.estatus.trim());
+        paramIndex += 1;
+    }
+
+    if (filtros.fechaDesde) {
+        condiciones.push(`DATE(P.FECHA_PUBLICACION) >= $${paramIndex}`);
+        values.push(filtros.fechaDesde);
+        paramIndex += 1;
+    }
+
+    if (filtros.fechaHasta) {
+        condiciones.push(`DATE(P.FECHA_PUBLICACION) <= $${paramIndex}`);
+        values.push(filtros.fechaHasta);
+        paramIndex += 1;
+    }
+
     const query = `
-        SELECT 
-            P.ID_PUBLICACION, 
-            P.TITULO, 
+        SELECT
+            P.ID_PUBLICACION,
+            P.TITULO,
             P.ESTADO_PUBLICACION,
+            P.FECHA_PUBLICACION,
+            CONCAT_WS(' ', U.NOMBRE, U.PRIMER_APELLIDO, U.SEGUNDO_APELLIDO) AS AUTOR_NOMBRE,
             C.NOMBRE_CATEGORIA
         FROM PUBLICACIONES P
+        INNER JOIN USUARIOS U ON P.ID_AUTOR = U.ID_USUARIO
         INNER JOIN CATEGORIAS C ON P.ID_CATEGORIA = C.ID_CATEGORIA
-        WHERE P.ID_AUTOR = $1
+        WHERE ${condiciones.join(' AND ')}
         ORDER BY P.FECHA_PUBLICACION DESC
     `;
-    const result = await pool.query(query, [id_autor]);
+    const result = await pool.query(query, values);
     return result.rows;
 };
 

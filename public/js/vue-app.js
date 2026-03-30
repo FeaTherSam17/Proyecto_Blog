@@ -42,37 +42,10 @@ createApp({
                 fechaHasta: ''
             },
             filtroAutoresPanel: '',
-            publicacionesPanel: [
-                { id: 1, titulo: 'Introduccion a NoSQL', autor: 'ANA PEREZ', fecha: '2026-03-12', estatus: 'ACTIVO' },
-                { id: 2, titulo: 'Modelado de Documentos', autor: 'LUIS RAMOS', fecha: '2026-02-28', estatus: 'BORRADOR' },
-                { id: 3, titulo: 'Indices y Rendimiento', autor: 'CARLA NUNEZ', fecha: '2026-01-18', estatus: 'INACTIVO' }
-            ],
-            autoresPanel: [
-                {
-                    id: 1,
-                    nombre: 'ANA',
-                    primer_apellido: 'PEREZ',
-                    segundo_apellido: 'LOPEZ',
-                    sexo: 'F',
-                    email: 'ana@blog.com',
-                    telefono: '9991234567',
-                    biografia: 'Editora y autora de tecnologia.',
-                    contrasena: '******',
-                    estatus: 'ACTIVO'
-                },
-                {
-                    id: 2,
-                    nombre: 'LUIS',
-                    primer_apellido: 'RAMOS',
-                    segundo_apellido: 'DIAZ',
-                    sexo: 'M',
-                    email: 'luis@blog.com',
-                    telefono: '9995551122',
-                    biografia: 'Redactor de bases de datos.',
-                    contrasena: '******',
-                    estatus: 'ACTIVO'
-                }
-            ],
+            publicacionesPanel: [],
+            autoresPanel: [],
+            timerBusquedaPublicaciones: null,
+            timerBusquedaAutores: null,
             nuevoAutorPanel: {
                 nombre: '',
                 primer_apellido: '',
@@ -104,35 +77,35 @@ createApp({
         }
         if (window.location.pathname.includes('adminPanel.html')) {
             this.seccionPanel = 'publicaciones';
+            this.chequearAutenticacion();
+            this.cargarPublicacionesPanel();
+            this.cargarAutoresPanel();
+            this.cargarSexos();
         }
     },
     computed: {
         publicacionesFiltradasPanel() {
-            return this.publicacionesPanel.filter((pub) => {
-                const autor = (this.filtrosPublicacionesPanel.autor || '').toUpperCase().trim();
-                const estatus = this.filtrosPublicacionesPanel.estatus || '';
-                const fechaDesde = this.filtrosPublicacionesPanel.fechaDesde || '';
-                const fechaHasta = this.filtrosPublicacionesPanel.fechaHasta || '';
-
-                const coincideAutor = !autor || pub.autor.toUpperCase().includes(autor);
-                const coincideEstatus = !estatus || pub.estatus === estatus;
-                const coincideFechaDesde = !fechaDesde || pub.fecha >= fechaDesde;
-                const coincideFechaHasta = !fechaHasta || pub.fecha <= fechaHasta;
-
-                return coincideAutor && coincideEstatus && coincideFechaDesde && coincideFechaHasta;
-            });
+            return this.publicacionesPanel;
         },
         autoresFiltradosPanel() {
-            const termino = (this.filtroAutoresPanel || '').toUpperCase().trim();
-            if (!termino) {
-                return this.autoresPanel;
-            }
-
-            return this.autoresPanel.filter((autor) => {
-                const nombreCompleto = this.nombreCompletoAutorPanel(autor).toUpperCase();
-                const email = (autor.email || '').toUpperCase();
-                return nombreCompleto.includes(termino) || email.includes(termino);
-            });
+            return this.autoresPanel;
+        }
+    },
+    watch: {
+        'filtrosPublicacionesPanel.autor'() {
+            this.dispararBusquedaPublicaciones();
+        },
+        'filtrosPublicacionesPanel.estatus'() {
+            this.dispararBusquedaPublicaciones();
+        },
+        'filtrosPublicacionesPanel.fechaDesde'() {
+            this.dispararBusquedaPublicaciones();
+        },
+        'filtrosPublicacionesPanel.fechaHasta'() {
+            this.dispararBusquedaPublicaciones();
+        },
+        filtroAutoresPanel() {
+            this.dispararBusquedaAutores();
         }
     },
     methods: {
@@ -244,12 +217,12 @@ createApp({
                     this.usuarioActual = data.usuario || data.autor;
                 } else {
                     // Solo redirige a login si estás en la página de admin
-                    if (window.location.pathname.includes('admin.html')) {
+                    if (window.location.pathname.includes('admin.html') || window.location.pathname.includes('adminPanel.html')) {
                         window.location.href = '/login.html';
                     }
                 }
             } catch (err) {
-                if (window.location.pathname.includes('admin.html')) {
+                if (window.location.pathname.includes('admin.html') || window.location.pathname.includes('adminPanel.html')) {
                     window.location.href = '/login.html';
                 }
             }
@@ -402,6 +375,97 @@ createApp({
 },
         setSeccionPanel(seccion) {
             this.seccionPanel = seccion;
+
+            if (seccion === 'publicaciones') {
+                this.cargarPublicacionesPanel();
+            } else {
+                this.cargarAutoresPanel();
+            }
+        },
+        dispararBusquedaPublicaciones() {
+            if (this.timerBusquedaPublicaciones) {
+                clearTimeout(this.timerBusquedaPublicaciones);
+            }
+            this.timerBusquedaPublicaciones = setTimeout(() => {
+                this.cargarPublicacionesPanel();
+            }, 300);
+        },
+        dispararBusquedaAutores() {
+            if (this.timerBusquedaAutores) {
+                clearTimeout(this.timerBusquedaAutores);
+            }
+            this.timerBusquedaAutores = setTimeout(() => {
+                this.cargarAutoresPanel();
+            }, 300);
+        },
+        async cargarPublicacionesPanel() {
+            try {
+                const params = new URLSearchParams();
+                if (this.filtrosPublicacionesPanel.autor) {
+                    params.set('autor', this.filtrosPublicacionesPanel.autor);
+                }
+                if (this.filtrosPublicacionesPanel.estatus) {
+                    params.set('estatus', this.filtrosPublicacionesPanel.estatus);
+                }
+                if (this.filtrosPublicacionesPanel.fechaDesde) {
+                    params.set('fechaDesde', this.filtrosPublicacionesPanel.fechaDesde);
+                }
+                if (this.filtrosPublicacionesPanel.fechaHasta) {
+                    params.set('fechaHasta', this.filtrosPublicacionesPanel.fechaHasta);
+                }
+
+                const query = params.toString();
+                const res = await fetch(`/api/admin/panel${query ? `?${query}` : ''}`);
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    return;
+                }
+
+                const publicaciones = await res.json();
+                this.publicacionesPanel = publicaciones.map((pub) => ({
+                    id: pub.id_publicacion,
+                    titulo: pub.titulo,
+                    autor: pub.autor_nombre || '',
+                    fecha: pub.fecha_publicacion,
+                    estatus: pub.estado_publicacion
+                }));
+            } catch (err) {
+                console.error('Error al cargar publicaciones del panel:', err);
+            }
+        },
+        async cargarAutoresPanel() {
+            try {
+                const params = new URLSearchParams();
+                if (this.filtroAutoresPanel) {
+                    params.set('q', this.filtroAutoresPanel);
+                }
+
+                const query = params.toString();
+                const res = await fetch(`/api/admin/autores${query ? `?${query}` : ''}`);
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    return;
+                }
+
+                const autores = await res.json();
+                this.autoresPanel = autores.map((autor) => ({
+                    id: autor.id_autor,
+                    nombre: autor.nombre,
+                    primer_apellido: autor.primer_apellido,
+                    segundo_apellido: autor.segundo_apellido,
+                    sexo: autor.cod_sexo,
+                    email: autor.email,
+                    telefono: autor.telefono,
+                    biografia: autor.biografia,
+                    estatus: autor.estado_autor || autor.estado_usuario || 'ACTIVO'
+                }));
+            } catch (err) {
+                console.error('Error al cargar autores del panel:', err);
+            }
         },
         abrirModalAutorPanel() {
             this.mostrarModalAutorPanel = true;
@@ -422,26 +486,41 @@ createApp({
         nombreCompletoAutorPanel(autor) {
             return `${autor.nombre || ''} ${autor.primer_apellido || ''} ${autor.segundo_apellido || ''}`.replace(/\s+/g, ' ').trim();
         },
-        guardarAutorPanel() {
-            const nuevo = {
-                id: this.autoresPanel.length + 1,
-                nombre: this.nuevoAutorPanel.nombre.trim().toUpperCase(),
-                primer_apellido: this.nuevoAutorPanel.primer_apellido.trim().toUpperCase(),
-                segundo_apellido: this.nuevoAutorPanel.segundo_apellido.trim().toUpperCase(),
-                sexo: this.nuevoAutorPanel.sexo,
+        async guardarAutorPanel() {
+            const payload = {
+                nombre: this.nuevoAutorPanel.nombre.trim(),
+                primer_apellido: this.nuevoAutorPanel.primer_apellido.trim(),
+                segundo_apellido: this.nuevoAutorPanel.segundo_apellido.trim(),
+                cod_sexo: this.nuevoAutorPanel.sexo,
                 email: this.nuevoAutorPanel.email.trim(),
                 telefono: this.nuevoAutorPanel.telefono.trim(),
                 biografia: this.nuevoAutorPanel.biografia.trim(),
-                contrasena: this.nuevoAutorPanel.contrasena,
-                estatus: 'ACTIVO'
+                contrasena: this.nuevoAutorPanel.contrasena
             };
 
-            const completo = nuevo.nombre && nuevo.primer_apellido && nuevo.segundo_apellido && nuevo.sexo && nuevo.email && nuevo.telefono && nuevo.biografia && nuevo.contrasena;
+            const completo = payload.nombre && payload.primer_apellido && payload.segundo_apellido && payload.cod_sexo && payload.email && payload.telefono && payload.biografia && payload.contrasena;
             if (!completo) return;
 
-            this.autoresPanel.unshift(nuevo);
-            this.seccionPanel = 'autores';
-            this.cerrarModalAutorPanel();
+            try {
+                const res = await fetch('/api/auth/registro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    this.errorMsg = data.error || 'No fue posible registrar el autor';
+                    return;
+                }
+
+                this.errorMsg = '';
+                this.seccionPanel = 'autores';
+                this.cerrarModalAutorPanel();
+                this.cargarAutoresPanel();
+            } catch (err) {
+                this.errorMsg = 'Error al contactar con el servidor';
+            }
         },
     }
 }).mount('#app');

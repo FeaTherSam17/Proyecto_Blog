@@ -46,7 +46,9 @@
                                     <option value="">Todos</option>
                                     <option value="ACTIVO">Activo</option>
                                     <option value="INACTIVO">Inactivo</option>
-                                    <option value="BORRADOR">Borrador</option>
+                                    <option value="PENDIENTE_VERIFICACION">Pendiente verificacion</option>
+                                    <option value="SUSPENDIDO">Suspendido</option>
+                                    <option value="ELIMINADO">Eliminado</option>
                                 </select>
                             </div>
                             <div>
@@ -115,9 +117,7 @@
                         <label class="category-tag mb-2">Sexo</label>
                         <select v-model="nuevoAutorPanel.sexo" class="form-control w-100" required>
                             <option value="" disabled>Selecciona una opcion</option>
-                            <option value="M">Masculino</option>
-                            <option value="F">Femenino</option>
-                            <option value="O">Otro</option>
+                            <option v-for="sexo in sexos" :key="sexo.cod_sexo" :value="sexo.cod_sexo">{{ sexo.descripcion }}</option>
                         </select>
                     </div>
                     <div class="mb-3">

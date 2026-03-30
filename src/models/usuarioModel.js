@@ -87,9 +87,47 @@ const obtenerSexos = async () => {
     return result.rows;
 };
 
+const obtenerAutores = async (termino = '') => {
+    const values = [];
+    let whereBusqueda = '';
+
+    if (termino && termino.trim()) {
+        whereBusqueda = `
+            AND (
+                UPPER(CONCAT_WS(' ', U.NOMBRE, U.PRIMER_APELLIDO, U.SEGUNDO_APELLIDO)) LIKE UPPER($1)
+                OR UPPER(U.EMAIL) LIKE UPPER($1)
+            )
+        `;
+        values.push(`%${termino.trim()}%`);
+    }
+
+    const query = `
+        SELECT
+            U.ID_USUARIO AS ID_AUTOR,
+            U.NOMBRE,
+            U.PRIMER_APELLIDO,
+            U.SEGUNDO_APELLIDO,
+            U.EMAIL,
+            U.ESTADO_USUARIO,
+            A.COD_SEXO,
+            A.TELEFONO,
+            A.BIOGRAFIA,
+            A.ESTADO_AUTOR
+        FROM USUARIOS U
+        INNER JOIN AUTORES A ON U.ID_USUARIO = A.ID_AUTOR
+        WHERE U.ROL = 'AUTOR'
+        ${whereBusqueda}
+        ORDER BY U.NOMBRE ASC, U.PRIMER_APELLIDO ASC, U.SEGUNDO_APELLIDO ASC
+    `;
+
+    const result = await pool.query(query, values);
+    return result.rows;
+};
+
 module.exports = {
     registrarAutor,
     buscarUsuarioPorEmail,
     obtenerAutorPorId,
-    obtenerSexos
+    obtenerSexos,
+    obtenerAutores
 };
