@@ -36,5 +36,5 @@ app.use('/api/admin', adminRoutes);
 // Iniciar el servidor
 app.listen(port, () => {
     console.log(`Servidor escuchando en http://localhost:${port}`);
-    console.log(`Haz clic aquí para ver inicio: http://localhost:${port}/inicio.html`);
+    console.log(`Haz clic aquí para ver inicio: http://localhost:${port}/adminPanel.html`);
 });

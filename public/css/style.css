@@ -374,9 +374,10 @@ h1, h2, h3, h4, h5, .navbar-brand, .section-title {
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 1rem;
+    padding: 2rem 1rem;
+    overflow-y: auto;
     z-index: 2000;
 }
 
@@ -387,9 +388,11 @@ h1, h2, h3, h4, h5, .navbar-brand, .section-title {
 .modal-card {
     width: 100%;
     max-width: 760px;
+    max-height: calc(100vh - 4rem);
     background: var(--pure-white);
     border: 1px solid var(--border-dark);
     padding: 2rem;
+    overflow-y: auto;
 }
 
 .modal-title {
@@ -418,5 +421,14 @@ h1, h2, h3, h4, h5, .navbar-brand, .section-title {
 
     .filters-grid {
         grid-template-columns: 1fr;
+    }
+
+    .modal-backdrop {
+        padding: 1rem 0.75rem;
+    }
+
+    .modal-card {
+        max-height: calc(100vh - 2rem);
+        padding: 1.25rem;
     }
 }
