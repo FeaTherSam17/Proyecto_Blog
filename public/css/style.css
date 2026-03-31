@@ -364,6 +364,47 @@ h1, h2, h3, h4, h5, .navbar-brand, .section-title {
     font-size: 0.85rem;
 }
 
+.author-item-footer {
+    margin-top: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.author-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.author-action-btn {
+    border: 1px solid var(--border-dark);
+    background: var(--pure-white);
+    color: var(--dark-text);
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 0.35rem 0.6rem;
+    cursor: pointer;
+}
+
+.author-action-btn:hover {
+    background: var(--dark-text);
+    color: var(--pure-white);
+}
+
+.author-action-btn-danger {
+    border-color: #b42318;
+    color: #b42318;
+}
+
+.author-action-btn-danger:hover {
+    background: #b42318;
+    color: var(--pure-white);
+}
+
 .empty-state {
     padding: 1.5rem;
     margin: 0;

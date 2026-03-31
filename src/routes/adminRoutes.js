@@ -16,6 +16,8 @@ router.use(requerirAutenticacion);
 // Rutas privadas
 router.get('/panel', adminController.panelAdmin);
 router.get('/autores', adminController.listarAutores);
+router.put('/autores/:id', adminController.actualizarAutor);
+router.delete('/autores/:id', adminController.eliminarAutor);
 router.post('/publicaciones', adminController.crearPublicacion);
 router.get('/publicaciones/:id', adminController.obtenerPublicacionParaEditar);
 router.put('/publicaciones/:id', adminController.actualizarPublicacion);

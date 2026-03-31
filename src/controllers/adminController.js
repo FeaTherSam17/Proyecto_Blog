@@ -1,5 +1,6 @@
 const articuloModel = require('../models/articuloModel');
 const usuarioModel = require('../models/usuarioModel');
+const bcrypt = require('bcryptjs');
 
 const panelAdmin = async (req, res) => {
     try {
@@ -137,11 +138,87 @@ const listarAutores = async (req, res) => {
     }
 };
 
+const actualizarAutor = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            nombre,
+            primer_apellido,
+            segundo_apellido,
+            cod_sexo,
+            email,
+            telefono,
+            biografia,
+            contrasena
+        } = req.body;
+
+        if (!id) {
+            return res.status(400).json({ error: 'ID de autor requerido' });
+        }
+
+        if (!nombre || !primer_apellido || !segundo_apellido || !cod_sexo || !email || !telefono || !biografia) {
+            return res.status(400).json({ error: 'Faltan campos obligatorios' });
+        }
+
+        let contrasenaHash = null;
+        if (contrasena && contrasena.trim()) {
+            const salt = await bcrypt.genSalt(10);
+            contrasenaHash = await bcrypt.hash(contrasena.trim(), salt);
+        }
+
+        const resultado = await usuarioModel.actualizarAutor(id, {
+            nombre: nombre.trim(),
+            primer_apellido: primer_apellido.trim(),
+            segundo_apellido: segundo_apellido.trim(),
+            cod_sexo,
+            email: email.trim(),
+            telefono: telefono.trim(),
+            biografia: biografia.trim(),
+            contrasena: contrasenaHash
+        });
+
+        if (!resultado) {
+            return res.status(404).json({ error: 'Autor no encontrado' });
+        }
+
+        res.json({ mensaje: 'Autor actualizado' });
+    } catch (error) {
+        console.error('Error al actualizar autor:', error);
+        res.status(500).json({ error: 'Error interno del servidor al actualizar autor' });
+    }
+};
+
+const eliminarAutor = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ error: 'ID de autor requerido' });
+        }
+
+        if (Number(id) === Number(req.session.usuarioId)) {
+            return res.status(400).json({ error: 'No puedes eliminar tu propio usuario' });
+        }
+
+        const resultado = await usuarioModel.eliminarAutor(id);
+        if (!resultado) {
+            return res.status(404).json({ error: 'Autor no encontrado' });
+        }
+
+        res.json({ mensaje: 'Autor eliminado' });
+    } catch (error) {
+        console.error('Error al eliminar autor:', error);
+        res.status(500).json({ error: 'Error interno del servidor al eliminar autor' });
+    }
+};
+
 module.exports = {
     panelAdmin,
     crearPublicacion,
     eliminarPublicacion,
     obtenerPublicacionParaEditar,
     actualizarPublicacion,
-    listarAutores
+    listarAutores,
+    actualizarAutor,
+    eliminarAutor
 };

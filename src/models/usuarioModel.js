@@ -124,10 +124,118 @@ const obtenerAutores = async (termino = '') => {
     return result.rows;
 };
 
+const actualizarAutor = async (id_autor, datos) => {
+    const {
+        nombre,
+        primer_apellido,
+        segundo_apellido,
+        cod_sexo,
+        email,
+        telefono,
+        biografia,
+        contrasena
+    } = datos;
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        const usuarioQuery = contrasena
+            ? `
+                UPDATE USUARIOS
+                SET NOMBRE = $1,
+                    PRIMER_APELLIDO = $2,
+                    SEGUNDO_APELLIDO = $3,
+                    EMAIL = $4,
+                    CONTRASENA = $5
+                WHERE ID_USUARIO = $6 AND ROL = 'AUTOR'
+                RETURNING ID_USUARIO
+            `
+            : `
+                UPDATE USUARIOS
+                SET NOMBRE = $1,
+                    PRIMER_APELLIDO = $2,
+                    SEGUNDO_APELLIDO = $3,
+                    EMAIL = $4
+                WHERE ID_USUARIO = $5 AND ROL = 'AUTOR'
+                RETURNING ID_USUARIO
+            `;
+
+        const usuarioValues = contrasena
+            ? [nombre, primer_apellido, segundo_apellido, email, contrasena, id_autor]
+            : [nombre, primer_apellido, segundo_apellido, email, id_autor];
+
+        const usuarioResult = await client.query(usuarioQuery, usuarioValues);
+        if (!usuarioResult.rows[0]) {
+            await client.query('ROLLBACK');
+            return null;
+        }
+
+        const autorQuery = `
+            UPDATE AUTORES
+            SET COD_SEXO = $1,
+                TELEFONO = $2,
+                BIOGRAFIA = $3
+            WHERE ID_AUTOR = $4
+            RETURNING ID_AUTOR
+        `;
+        await client.query(autorQuery, [cod_sexo, telefono, biografia, id_autor]);
+
+        await client.query('COMMIT');
+        return { id_autor };
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
+const eliminarAutor = async (id_autor) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        const usuarioResult = await client.query(
+            `
+                UPDATE USUARIOS
+                SET ESTADO_USUARIO = 'INACTIVO'
+                WHERE ID_USUARIO = $1 AND ROL = 'AUTOR'
+                RETURNING ID_USUARIO
+            `,
+            [id_autor]
+        );
+
+        if (!usuarioResult.rows[0]) {
+            await client.query('ROLLBACK');
+            return null;
+        }
+
+        await client.query(
+            `
+                UPDATE AUTORES
+                SET ESTADO_AUTOR = 'INACTIVO'
+                WHERE ID_AUTOR = $1
+            `,
+            [id_autor]
+        );
+
+        await client.query('COMMIT');
+        return { id_autor };
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     registrarAutor,
     buscarUsuarioPorEmail,
     obtenerAutorPorId,
     obtenerSexos,
-    obtenerAutores
+    obtenerAutores,
+    actualizarAutor,
+    eliminarAutor
 };

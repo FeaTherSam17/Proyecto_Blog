@@ -84,7 +84,13 @@
                                 <h3 class="author-name">{{ nombreCompletoAutorPanel(autor) }}</h3>
                                 <p class="text-secondary author-mail">{{ autor.email }}</p>
                                 <p class="text-secondary author-phone">{{ autor.telefono }}</p>
-                                <span class="badge">{{ autor.estatus }}</span>
+                                <div class="author-item-footer">
+                                    <span class="badge">{{ autor.estatus }}</span>
+                                    <div class="author-actions">
+                                        <button type="button" class="author-action-btn" @click="editarAutorPanel(autor)">EDITAR</button>
+                                        <button type="button" class="author-action-btn author-action-btn-danger" @click="eliminarAutorPanel(autor)">ELIMINAR</button>
+                                    </div>
+                                </div>
                             </div>
                             <p v-if="autoresFiltradosPanel.length === 0" class="text-secondary text-center empty-state">No hay autores para mostrar.</p>
                         </div>
@@ -96,7 +102,7 @@
         <div v-if="mostrarModalAutorPanel" class="modal-backdrop" @click.self="cerrarModalAutorPanel">
             <div class="modal-card">
                 <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h3 class="section-title modal-title">NUEVO AUTOR</h3>
+                    <h3 class="section-title modal-title">{{ editandoAutorPanelId ? 'EDITAR AUTOR' : 'NUEVO AUTOR' }}</h3>
                     <button type="button" class="btn-editorial modal-close-btn" @click="cerrarModalAutorPanel">X</button>
                 </div>
 
@@ -133,11 +139,11 @@
                         <textarea v-model="nuevoAutorPanel.biografia" class="form-control w-100" rows="4" required></textarea>
                     </div>
                     <div class="mb-4">
-                        <label class="category-tag mb-2">Contrasena</label>
-                        <input v-model="nuevoAutorPanel.contrasena" type="password" class="form-control w-100" required>
+                        <label class="category-tag mb-2">Contrasena {{ editandoAutorPanelId ? '(opcional)' : '' }}</label>
+                        <input v-model="nuevoAutorPanel.contrasena" type="password" class="form-control w-100" :required="!editandoAutorPanelId">
                     </div>
                     <div class="d-flex gap-3">
-                        <button type="submit" class="btn-editorial">GUARDAR AUTOR</button>
+                        <button type="submit" class="btn-editorial">{{ editandoAutorPanelId ? 'ACTUALIZAR AUTOR' : 'GUARDAR AUTOR' }}</button>
                         <button type="button" class="btn-editorial" @click="cerrarModalAutorPanel">CANCELAR</button>
                     </div>
                 </form>

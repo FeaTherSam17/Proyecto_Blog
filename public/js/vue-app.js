@@ -35,6 +35,7 @@ createApp({
             editandoPublicacionId: null,
             seccionPanel: 'publicaciones',
             mostrarModalAutorPanel: false,
+            editandoAutorPanelId: null,
             filtrosPublicacionesPanel: {
                 autor: '',
                 estatus: '',
@@ -468,10 +469,12 @@ createApp({
             }
         },
         abrirModalAutorPanel() {
+            this.editandoAutorPanelId = null;
             this.mostrarModalAutorPanel = true;
         },
         cerrarModalAutorPanel() {
             this.mostrarModalAutorPanel = false;
+            this.editandoAutorPanelId = null;
             this.nuevoAutorPanel = {
                 nombre: '',
                 primer_apellido: '',
@@ -486,6 +489,41 @@ createApp({
         nombreCompletoAutorPanel(autor) {
             return `${autor.nombre || ''} ${autor.primer_apellido || ''} ${autor.segundo_apellido || ''}`.replace(/\s+/g, ' ').trim();
         },
+        editarAutorPanel(autor) {
+            this.editandoAutorPanelId = autor.id;
+            this.nuevoAutorPanel = {
+                nombre: autor.nombre || '',
+                primer_apellido: autor.primer_apellido || '',
+                segundo_apellido: autor.segundo_apellido || '',
+                sexo: autor.sexo || '',
+                email: autor.email || '',
+                telefono: autor.telefono || '',
+                biografia: autor.biografia || '',
+                contrasena: ''
+            };
+            this.mostrarModalAutorPanel = true;
+        },
+        async eliminarAutorPanel(autor) {
+            const confirmar = confirm(`¿Deseas eliminar al autor ${this.nombreCompletoAutorPanel(autor)}?`);
+            if (!confirmar) return;
+
+            this.errorMsg = '';
+            try {
+                const res = await fetch(`/api/admin/autores/${autor.id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    this.errorMsg = data.error || 'No fue posible eliminar el autor';
+                    return;
+                }
+
+                this.cargarAutoresPanel();
+            } catch (err) {
+                this.errorMsg = 'Error al contactar con el servidor';
+            }
+        },
         async guardarAutorPanel() {
             const payload = {
                 nombre: this.nuevoAutorPanel.nombre.trim(),
@@ -498,12 +536,22 @@ createApp({
                 contrasena: this.nuevoAutorPanel.contrasena
             };
 
-            const completo = payload.nombre && payload.primer_apellido && payload.segundo_apellido && payload.cod_sexo && payload.email && payload.telefono && payload.biografia && payload.contrasena;
+            const completo = payload.nombre && payload.primer_apellido && payload.segundo_apellido && payload.cod_sexo && payload.email && payload.telefono && payload.biografia;
             if (!completo) return;
 
+            if (!this.editandoAutorPanelId && !payload.contrasena) return;
+
+            if (this.editandoAutorPanelId && !payload.contrasena) {
+                delete payload.contrasena;
+            }
+
             try {
-                const res = await fetch('/api/auth/registro', {
-                    method: 'POST',
+                const esEdicion = !!this.editandoAutorPanelId;
+                const endpoint = esEdicion ? `/api/admin/autores/${this.editandoAutorPanelId}` : '/api/auth/registro';
+                const method = esEdicion ? 'PUT' : 'POST';
+
+                const res = await fetch(endpoint, {
+                    method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
