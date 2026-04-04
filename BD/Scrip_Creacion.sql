@@ -4,6 +4,8 @@ CREATE DATABASE proyecto_blog;
 
 \c proyecto_blog
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- 2. TABLA CATÁLOGO: SEXOS
 CREATE TABLE CAT_SEXOS (
     COD_SEXO CHAR(1) PRIMARY KEY,
@@ -92,6 +94,8 @@ CREATE TABLE USUARIOS (
 
 
 );
+INSERT INTO USUARIOS (NOMBRE, PRIMER_APELLIDO, SEGUNDO_APELLIDO, EMAIL, CONTRASENA, ROL, ESTADO_USUARIO)
+VALUES ('Erika', 'Adame', 'García', 'erikaadmin@gmail.com', crypt('admin123', gen_salt('bf')), 'ADMIN', 'ACTIVO');
 
 -- Eliminar constraint y columnas de la tabla autores
 ALTER TABLE AUTORES DROP CONSTRAINT IF EXISTS AUTORES_APELLIDOS_CK;

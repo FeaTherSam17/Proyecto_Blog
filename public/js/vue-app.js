@@ -147,11 +147,14 @@ createApp({
                 const data = await res.json();
 
                 if (res.ok) {
+                    const rol = (data.rol || '').toUpperCase();
+                    const destinoPorRol = rol === 'ADMIN' ? '/adminPanel.html' : '/inicio.html';
+
                     this.usuarioActual = {
                         email: this.loginData.email,
-                        rol: data.rol
+                        rol
                     };
-                    window.location.href = data.redireccionar;
+                    window.location.href = data.redireccionar || destinoPorRol;
                 } else {
                     this.errorMsg = data.error || 'Autenticación fallida';
                 }
@@ -216,6 +219,13 @@ createApp({
                 if (res.ok) {
                     const data = await res.json();
                     this.usuarioActual = data.usuario || data.autor;
+
+                    const rolActual = (this.usuarioActual?.rol || '').toUpperCase();
+                    const enAdminPanel = window.location.pathname.includes('adminPanel.html');
+                    if (rolActual === 'ADMIN' && !enAdminPanel) {
+                        window.location.href = '/adminPanel.html';
+                        return;
+                    }
                 } else {
                     // Solo redirige a login si estás en la página de admin
                     if (window.location.pathname.includes('admin.html') || window.location.pathname.includes('adminPanel.html')) {
@@ -244,7 +254,7 @@ createApp({
        async cerrarSesion() {
             try {
                 await fetch('/api/auth/logout', { method: 'POST' });
-                window.location.href = '/inicio.html'; // <-- CAMBIA ESTO AQUÍ
+                window.location.href = '/inicio.html'; // <-- Regresa al inico
             } catch (err) {
                 console.error("Error cerrando sesión");
             }

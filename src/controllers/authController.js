@@ -105,8 +105,14 @@ const login = async (req, res) => {
         req.session.usuarioEmail = usuario.email;
         req.session.usuarioRol = usuario.rol;
 
-        const redireccionar = '/admin.html';
-        res.json({ mensaje: 'Login exitoso', redireccionar, rol: usuario.rol });
+        const rol = (usuario.rol || '').toUpperCase();
+
+        let redireccionar = '/inicio.html';
+        if (rol === 'ADMIN') {
+            redireccionar = '/adminPanel.html';
+        }
+
+        res.json({ mensaje: 'Login exitoso', redireccionar, rol });
     } catch (error) {
         console.error('Error en login:', error);
         res.status(500).json({ error: 'Error interno del servidor en el login' });

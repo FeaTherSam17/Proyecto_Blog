@@ -25,6 +25,19 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Si es ADMIN, solo puede navegar en adminPanel mientras mantenga sesión activa.
+app.use((req, res, next) => {
+    const esAdmin = (req.session.usuarioRol || '').toUpperCase() === 'ADMIN';
+    const esPeticionHtml = req.method === 'GET' && (req.path === '/' || req.path.endsWith('.html'));
+    const esRutaApi = req.path.startsWith('/api');
+
+    if (esAdmin && esPeticionHtml && !esRutaApi && req.path !== '/adminPanel.html') {
+        return res.redirect('/adminPanel.html');
+    }
+
+    next();
+});
+
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../public')));
 

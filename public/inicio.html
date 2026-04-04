@@ -17,8 +17,8 @@
                 <a class="navbar-brand" href="inicio.html">PROYECTO_BLOG</a>
                 <div class="d-flex align-items-center gap-4">
                     <a href="inicio.html" class="nav-link">INICIO</a>
-                    <a v-if="!usuarioActual" href="login.html" class="btn-editorial">ACCESO AUTOR</a>
-                    <a v-else href="adminPanel.html" class="btn-editorial" style="background-color: #0d6efd; border-color: #0d6efd;">PANEL DE {{ usuarioActual.nombre.toUpperCase() }}</a>
+                    <a v-if="!usuarioActual" href="login.html" class="btn-editorial">ACCESO</a>
+                    <a v-else href="admin.html" class="btn-editorial" style="background-color: #0d6efd; border-color: #0d6efd;">PANEL DE {{ usuarioActual.nombre.toUpperCase() }}</a>
                 </div>
             </div>
         </nav>
