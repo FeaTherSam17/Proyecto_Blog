@@ -1,5 +1,4 @@
--- Extensión para hashing de contraseñas
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 
 -- 1. TABLA CATÁLOGO: SEXOS
 CREATE TABLE IF NOT EXISTS CAT_SEXOS (
@@ -52,7 +51,7 @@ CREATE TABLE IF NOT EXISTS USUARIOS (
 
 -- Usuario ADMIN por defecto
 INSERT INTO USUARIOS (NOMBRE, PRIMER_APELLIDO, SEGUNDO_APELLIDO, EMAIL, CONTRASENA, ROL, ESTADO_USUARIO)
-VALUES ('Erika', 'Adame', 'García', 'erikaadmin@gmail.com', crypt('admin123', gen_salt('bf')), 'ADMIN', 'ACTIVO')
+VALUES ('Erika', 'Adame', 'García', 'erikaadmin@gmail.com', 'admin123', 'ADMIN', 'ACTIVO')
 ON CONFLICT (EMAIL) DO NOTHING;
 
 -- 4. TABLA: AUTORES (datos adicionales del autor — FK a USUARIOS)

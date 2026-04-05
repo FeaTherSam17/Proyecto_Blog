@@ -1,4 +1,3 @@
-const bcrypt = require('bcryptjs');
 const usuarioModel = require('../models/usuarioModel');
 
 const registrar = async (req, res) => {
@@ -52,10 +51,6 @@ const registrar = async (req, res) => {
             return res.status(400).json({ error: 'La biografía no puede exceder los 500 caracteres' });
         }
 
-        // Hashear contraseña
-        const salt = await bcrypt.genSalt(10);
-        const contrasenaHasheada = await bcrypt.hash(contrasena, salt);
-
         // Guardar en BD
         const nuevoAutor = {
             nombre,
@@ -65,7 +60,7 @@ const registrar = async (req, res) => {
             email,
             telefono,
             biografia,
-            contrasena: contrasenaHasheada
+            contrasena: contrasena
         };
 
         const resultado = await usuarioModel.registrarAutor(nuevoAutor);
@@ -94,8 +89,7 @@ const login = async (req, res) => {
         }
 
         // Verificar contraseña
-        const esValida = await bcrypt.compare(contrasena, usuario.contrasena);
-        if (!esValida) {
+        if (contrasena !== usuario.contrasena) {
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 

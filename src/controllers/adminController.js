@@ -1,6 +1,5 @@
 const articuloModel = require('../models/articuloModel');
 const usuarioModel = require('../models/usuarioModel');
-const bcrypt = require('bcryptjs');
 
 // Panel principal: si es ADMIN devuelve todas las publicaciones, si es AUTOR solo las suyas
 const panelAdmin = async (req, res) => {
@@ -160,9 +159,6 @@ const crearAutor = async (req, res) => {
             return res.status(400).json({ error: 'La biografía no puede exceder los 500 caracteres' });
         }
 
-        const salt = await bcrypt.genSalt(10);
-        const contrasenaHash = await bcrypt.hash(contrasena.trim(), salt);
-
         const resultado = await usuarioModel.registrarAutor({
             nombre: nombre.trim(),
             primer_apellido: primer_apellido ? primer_apellido.trim() : null,
@@ -171,7 +167,7 @@ const crearAutor = async (req, res) => {
             email: email.trim(),
             telefono: telefono.trim(),
             biografia: biografia.trim(),
-            contrasena: contrasenaHash
+            contrasena: contrasena.trim()
         });
 
         res.status(201).json({ mensaje: 'Autor creado exitosamente', autor: resultado });
@@ -223,8 +219,7 @@ const actualizarAutor = async (req, res) => {
 
         let contrasenaHash = null;
         if (contrasena && contrasena.trim()) {
-            const salt = await bcrypt.genSalt(10);
-            contrasenaHash = await bcrypt.hash(contrasena.trim(), salt);
+            contrasenaHash = contrasena.trim();
         }
 
         const resultado = await usuarioModel.actualizarAutor(id, {
