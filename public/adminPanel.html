@@ -97,6 +97,15 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <div class="pagination-container text-center mt-5 mb-4" v-if="totalPaginasAutores > 1">
+                                <button type="button" class="pagination-number" v-for="page in totalPaginasAutores" :key="page" 
+                                        :class="{ 'active': paginaAutoresActual === (page - 1) }"
+                                        @click="cambiarPaginaAutores(page - 1)">
+                                    {{ page }}
+                                </button>
+                            </div>
+                            
                             <p v-if="autoresFiltradosPanel.length === 0" class="text-secondary text-center empty-state">No hay autores para mostrar.</p>
                         </div>
                     </section>

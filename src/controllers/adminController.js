@@ -183,7 +183,9 @@ const crearAutor = async (req, res) => {
 const listarAutores = async (req, res) => {
     try {
         const q = req.query.q || '';
-        const autores = await usuarioModel.obtenerAutores(q);
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = parseInt(req.query.offset) || 0;
+        const autores = await usuarioModel.obtenerAutores(q, limit, offset);
         res.json(autores);
     } catch (error) {
         console.error('Error al obtener autores para el panel:', error);
@@ -240,7 +242,8 @@ const actualizarAutor = async (req, res) => {
         res.json({ mensaje: 'Autor actualizado' });
     } catch (error) {
         console.error('Error al actualizar autor:', error);
-        res.status(500).json({ error: 'Error interno del servidor al actualizar autor' });
+        const errorMsg = error.detail || error.message || 'Error interno del servidor al actualizar autor';
+        res.status(500).json({ error: errorMsg });
     }
 };
 

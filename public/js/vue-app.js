@@ -45,6 +45,8 @@ createApp({
             filtroAutoresPanel: '',
             publicacionesPanel: [],
             autoresPanel: [],
+            paginaAutoresActual: 0,
+            totalPaginasAutores: 0,
             timerBusquedaPublicaciones: null,
             timerBusquedaAutores: null,
             nuevoAutorPanel: {
@@ -419,6 +421,16 @@ createApp({
         },
         async cargarPublicacionesPanel() {
             try {
+                const tieneFiltros = this.filtrosPublicacionesPanel.autor || 
+                                     this.filtrosPublicacionesPanel.estatus || 
+                                     this.filtrosPublicacionesPanel.fechaDesde || 
+                                     this.filtrosPublicacionesPanel.fechaHasta;
+                
+                if (!tieneFiltros) {
+                    this.publicacionesPanel = [];
+                    return;
+                }
+
                 const params = new URLSearchParams();
                 if (this.filtrosPublicacionesPanel.autor) {
                     params.set('autor', this.filtrosPublicacionesPanel.autor);
@@ -455,24 +467,31 @@ createApp({
                 console.error('Error al cargar publicaciones del panel:', err);
             }
         },
-        async cargarAutoresPanel() {
+        async cargarAutoresPanel(pagina = 0) {
             try {
+                this.paginaAutoresActual = pagina;
+
                 const params = new URLSearchParams();
                 if (this.filtroAutoresPanel) {
                     params.set('q', this.filtroAutoresPanel);
                 }
+                
+                const limitStr = 10;
+                params.set('limit', limitStr);
+                params.set('offset', this.paginaAutoresActual * limitStr);
 
                 const query = params.toString();
-                const res = await fetch(`/api/admin/autores${query ? `?${query}` : ''}`);
+                const res = await fetch(`/api/admin/autores${query ? '?' + query : ''}`);
                 if (!res.ok) {
-                    if (res.status === 401) {
-                        window.location.href = '/login.html';
-                    }
+                    if (res.status === 401) window.location.href = '/login.html';
                     return;
                 }
 
-                const autores = await res.json();
-                this.autoresPanel = autores.map((autor) => ({
+                const payload = await res.json();
+                const autoresDB = Array.isArray(payload) ? payload : (payload.autores || []);
+                const total = Array.isArray(payload) ? autoresDB.length : (payload.total || 0);
+
+                this.autoresPanel = autoresDB.map((autor) => ({
                     id: autor.id_autor,
                     nombre: autor.nombre,
                     primer_apellido: autor.primer_apellido,
@@ -483,8 +502,15 @@ createApp({
                     biografia: autor.biografia,
                     estatus: autor.estado_autor || autor.estado_usuario || 'ACTIVO'
                 }));
+
+                this.totalPaginasAutores = Math.ceil(total / limitStr);
             } catch (err) {
                 console.error('Error al cargar autores del panel:', err);
+            }
+        },
+        cambiarPaginaAutores(pagina) {
+            if (pagina >= 0 && pagina < this.totalPaginasAutores) {
+                this.cargarAutoresPanel(pagina);
             }
         },
         abrirModalAutorPanel() {

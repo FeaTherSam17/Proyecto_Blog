@@ -87,22 +87,25 @@ const obtenerSexos = async () => {
     return result.rows;
 };
 
-const obtenerAutores = async (termino = '') => {
+const obtenerAutores = async (termino = '', limit = 10, offset = 0) => {
     const values = [];
     let whereBusqueda = '';
+    let paramIndex = 1;
 
     if (termino && termino.trim()) {
         whereBusqueda = `
             AND (
-                UPPER(CONCAT_WS(' ', U.NOMBRE, U.PRIMER_APELLIDO, U.SEGUNDO_APELLIDO)) LIKE UPPER($1)
-                OR UPPER(U.EMAIL) LIKE UPPER($1)
+                UPPER(CONCAT_WS(' ', U.NOMBRE, U.PRIMER_APELLIDO, U.SEGUNDO_APELLIDO)) LIKE UPPER($${paramIndex})
+                OR UPPER(U.EMAIL) LIKE UPPER($${paramIndex})
             )
         `;
         values.push(`%${termino.trim()}%`);
+        paramIndex++;
     }
 
     const query = `
         SELECT
+            COUNT(*) OVER() AS total_registros,
             U.ID_USUARIO AS ID_AUTOR,
             U.NOMBRE,
             U.PRIMER_APELLIDO,
@@ -118,10 +121,21 @@ const obtenerAutores = async (termino = '') => {
         WHERE U.ROL = 'AUTOR'
         ${whereBusqueda}
         ORDER BY U.NOMBRE ASC, U.PRIMER_APELLIDO ASC, U.SEGUNDO_APELLIDO ASC
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
 
+    values.push(limit, offset);
+
     const result = await pool.query(query, values);
-    return result.rows;
+    const total = result.rows.length > 0 ? parseInt(result.rows[0].total_registros) : 0;
+
+    return {
+        autores: result.rows.map(row => {
+            const { total_registros, ...autor } = row;
+            return autor;
+        }),
+        total
+    };
 };
 
 const actualizarAutor = async (id_autor, datos) => {
