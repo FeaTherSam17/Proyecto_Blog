@@ -147,6 +147,9 @@
                         <label class="category-tag mb-2">Contrasena {{ editandoAutorPanelId ? '(opcional)' : '' }}</label>
                         <input v-model="nuevoAutorPanel.contrasena" type="password" class="form-control w-100" :required="!editandoAutorPanelId">
                     </div>
+                    
+                    <p v-if="errorMsg" style="color: #b42318; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem;">{{ errorMsg }}</p>
+                    
                     <div class="d-flex gap-3">
                         <button type="submit" class="btn-editorial">{{ editandoAutorPanelId ? 'ACTUALIZAR AUTOR' : 'GUARDAR AUTOR' }}</button>
                         <button type="button" class="btn-editorial" @click="cerrarModalAutorPanel">CANCELAR</button>

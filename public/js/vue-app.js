@@ -488,6 +488,7 @@ createApp({
             }
         },
         abrirModalAutorPanel() {
+            this.errorMsg = '';
             this.editandoAutorPanelId = null;
             this.mostrarModalAutorPanel = true;
         },
@@ -509,6 +510,7 @@ createApp({
             return `${autor.nombre || ''} ${autor.primer_apellido || ''} ${autor.segundo_apellido || ''}`.replace(/\s+/g, ' ').trim();
         },
         editarAutorPanel(autor) {
+            this.errorMsg = '';
             this.editandoAutorPanelId = autor.id;
             this.nuevoAutorPanel = {
                 nombre: autor.nombre || '',
@@ -544,6 +546,7 @@ createApp({
             }
         },
         async guardarAutorPanel() {
+            this.errorMsg = '';
             const payload = {
                 nombre: this.nuevoAutorPanel.nombre.trim(),
                 primer_apellido: this.nuevoAutorPanel.primer_apellido.trim(),
@@ -556,9 +559,15 @@ createApp({
             };
 
             const completo = payload.nombre && payload.primer_apellido && payload.segundo_apellido && payload.cod_sexo && payload.email && payload.telefono && payload.biografia;
-            if (!completo) return;
+            if (!completo) {
+                this.errorMsg = 'Por favor, llena todos los campos obligatorios.';
+                return;
+            }
 
-            if (!this.editandoAutorPanelId && !payload.contrasena) return;
+            if (!this.editandoAutorPanelId && !payload.contrasena) {
+                this.errorMsg = 'La contraseña es obligatoria para un autor nuevo.';
+                return;
+            }
 
             if (this.editandoAutorPanelId && !payload.contrasena) {
                 delete payload.contrasena;
