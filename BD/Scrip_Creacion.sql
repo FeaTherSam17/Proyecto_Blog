@@ -1,5 +1,5 @@
 -- 1. CREACIÓN DE LA BASE DE DATOS Y CONEXIÓN
-DROP DATABASE IF EXISTS proyecto_blog;
+DROP DATABASE IF EXISTS proyecto_blog WITH (FORCE);
 CREATE DATABASE proyecto_blog;
 
 \c proyecto_blog
@@ -108,6 +108,7 @@ DROP COLUMN CONTRASENA;
 
 -- Quitar comportamiento SERIAL para que ID_AUTOR dependa de ID_USUARIO
 ALTER TABLE AUTORES ALTER COLUMN ID_AUTOR DROP DEFAULT;
+ALTER TABLE AUTORES ALTER COLUMN ID_AUTOR DROP IDENTITY IF EXISTS;
 DROP SEQUENCE IF EXISTS autores_id_autor_seq;
 
 -- Borrar todos los datos para poder añadir la fk a autores

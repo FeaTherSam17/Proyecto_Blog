@@ -41,7 +41,7 @@ const obtenerPublicacionPorId = async (id) => {
     return result.rows[0];
 };
 
-// Obtener publicaciones de un autor específico (para panel de admin)
+// Obtener publicaciones de un autor específico (panel del autor — AUTOR role)
 const obtenerPublicacionesPorAutor = async (id_autor, filtros = {}) => {
     const condiciones = ['P.ID_AUTOR = $1'];
     const values = [id_autor];
@@ -80,9 +80,64 @@ const obtenerPublicacionesPorAutor = async (id_autor, filtros = {}) => {
             CONCAT_WS(' ', U.NOMBRE, U.PRIMER_APELLIDO, U.SEGUNDO_APELLIDO) AS AUTOR_NOMBRE,
             C.NOMBRE_CATEGORIA
         FROM PUBLICACIONES P
-        INNER JOIN USUARIOS U ON P.ID_AUTOR = U.ID_USUARIO
+        INNER JOIN AUTORES A ON P.ID_AUTOR = A.ID_AUTOR
+        INNER JOIN USUARIOS U ON A.ID_AUTOR = U.ID_USUARIO
         INNER JOIN CATEGORIAS C ON P.ID_CATEGORIA = C.ID_CATEGORIA
         WHERE ${condiciones.join(' AND ')}
+        ORDER BY P.FECHA_PUBLICACION DESC
+    `;
+    const result = await pool.query(query, values);
+    return result.rows;
+};
+
+// Obtener TODAS las publicaciones (para panel de ADMIN) con filtros opcionales
+const obtenerTodasPublicaciones = async (filtros = {}) => {
+    const condiciones = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (filtros.autor && filtros.autor.trim()) {
+        condiciones.push(`UPPER(CONCAT_WS(' ', U.NOMBRE, U.PRIMER_APELLIDO, U.SEGUNDO_APELLIDO)) LIKE UPPER($${paramIndex})`);
+        values.push(`%${filtros.autor.trim()}%`);
+        paramIndex += 1;
+    }
+
+    if (filtros.estatus && filtros.estatus.trim()) {
+        condiciones.push(`P.ESTADO_PUBLICACION = $${paramIndex}`);
+        values.push(filtros.estatus.trim());
+        paramIndex += 1;
+    }
+
+    if (filtros.fechaDesde) {
+        condiciones.push(`DATE(P.FECHA_PUBLICACION) >= $${paramIndex}`);
+        values.push(filtros.fechaDesde);
+        paramIndex += 1;
+    }
+
+    if (filtros.fechaHasta) {
+        condiciones.push(`DATE(P.FECHA_PUBLICACION) <= $${paramIndex}`);
+        values.push(filtros.fechaHasta);
+        paramIndex += 1;
+    }
+
+    const where = condiciones.length > 0 ? `WHERE ${condiciones.join(' AND ')}` : '';
+
+    const query = `
+        SELECT
+            P.ID_PUBLICACION,
+            P.TITULO,
+            P.ESTADO_PUBLICACION,
+            P.FECHA_PUBLICACION,
+            CONCAT_WS(' ', U.NOMBRE, U.PRIMER_APELLIDO, U.SEGUNDO_APELLIDO) AS AUTOR_NOMBRE,
+            C.NOMBRE_CATEGORIA,
+            (
+                SELECT COUNT(*) FROM PUBLICACIONES P2 WHERE P2.ID_AUTOR = P.ID_AUTOR
+            ) AS TOTAL_POSTS_AUTOR
+        FROM PUBLICACIONES P
+        INNER JOIN AUTORES A ON P.ID_AUTOR = A.ID_AUTOR
+        INNER JOIN USUARIOS U ON A.ID_AUTOR = U.ID_USUARIO
+        INNER JOIN CATEGORIAS C ON P.ID_CATEGORIA = C.ID_CATEGORIA
+        ${where}
         ORDER BY P.FECHA_PUBLICACION DESC
     `;
     const result = await pool.query(query, values);
@@ -119,7 +174,7 @@ const crearPublicacion = async (publicacion) => {
     return result.rows[0];
 };
 
-// Marcar una publicación como inactiva (eliminación lógica)
+// Marcar una publicación como eliminada (eliminación lógica)
 const eliminarPublicacion = async (id_publicacion, id_autor) => {
     const query = `
         UPDATE PUBLICACIONES
@@ -149,7 +204,6 @@ const actualizarPublicacion = async (id_publicacion, id_autor, datos) => {
     return result.rows[0];
 };
 
-
 // Obtener todas las categorías disponibles
 const obtenerCategorias = async () => {
     const query = 'SELECT ID_CATEGORIA, NOMBRE_CATEGORIA, DESCRIPCION FROM CATEGORIAS ORDER BY NOMBRE_CATEGORIA ASC';
@@ -161,12 +215,10 @@ module.exports = {
     obtenerPublicacionesActivas,
     obtenerPublicacionPorId,
     obtenerPublicacionesPorAutor,
+    obtenerTodasPublicaciones,
     obtenerPublicacionPorAutorId,
     crearPublicacion,
     eliminarPublicacion,
     actualizarPublicacion,
-    obtenerCategorias 
+    obtenerCategorias
 };
-
-
-

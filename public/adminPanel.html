@@ -68,6 +68,9 @@
                                 <p class="category-tag result-meta">{{ pub.estatus }} - {{ formatearFecha(pub.fecha) }}</p>
                                 <h3 class="result-title">{{ pub.titulo }}</h3>
                                 <p class="text-secondary result-author">AUTOR: {{ pub.autor }}</p>
+                                <p class="text-secondary result-author" style="font-size:0.75rem; margin-top:2px;">
+                                    Total posts del autor: {{ pub.totalPostsAutor }}
+                                </p>
                             </div>
                             <p v-if="publicacionesFiltradasPanel.length === 0" class="text-secondary text-center empty-state">No hay publicaciones que coincidan con los filtros.</p>
                         </div>

@@ -222,12 +222,20 @@ createApp({
 
                     const rolActual = (this.usuarioActual?.rol || '').toUpperCase();
                     const enAdminPanel = window.location.pathname.includes('adminPanel.html');
+                    const enAdminAutor = window.location.pathname.includes('admin.html') && !enAdminPanel;
+
+                    // Si es ADMIN y está en el panel de autor → redirigir al panel de admin
+                    if (rolActual === 'ADMIN' && enAdminAutor) {
+                        window.location.href = '/adminPanel.html';
+                        return;
+                    }
+                    // Si es ADMIN y no está en adminPanel → redirigir al adminPanel
                     if (rolActual === 'ADMIN' && !enAdminPanel) {
                         window.location.href = '/adminPanel.html';
                         return;
                     }
                 } else {
-                    // Solo redirige a login si estás en la página de admin
+                    // Sin sesión: redirigir a login si está en página protegida
                     if (window.location.pathname.includes('admin.html') || window.location.pathname.includes('adminPanel.html')) {
                         window.location.href = '/login.html';
                     }
@@ -440,7 +448,8 @@ createApp({
                     titulo: pub.titulo,
                     autor: pub.autor_nombre || '',
                     fecha: pub.fecha_publicacion,
-                    estatus: pub.estado_publicacion
+                    estatus: pub.estado_publicacion,
+                    totalPostsAutor: pub.total_posts_autor || 0
                 }));
             } catch (err) {
                 console.error('Error al cargar publicaciones del panel:', err);
@@ -557,7 +566,9 @@ createApp({
 
             try {
                 const esEdicion = !!this.editandoAutorPanelId;
-                const endpoint = esEdicion ? `/api/admin/autores/${this.editandoAutorPanelId}` : '/api/auth/registro';
+                const endpoint = esEdicion
+                    ? `/api/admin/autores/${this.editandoAutorPanelId}`
+                    : '/api/admin/autores';
                 const method = esEdicion ? 'PUT' : 'POST';
 
                 const res = await fetch(endpoint, {

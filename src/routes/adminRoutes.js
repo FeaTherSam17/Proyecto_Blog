@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 
-// Middleware para verificar que el usuario esté autenticado
+// Middleware: verifica que el usuario esté autenticado
 const requerirAutenticacion = (req, res, next) => {
     if (!req.session.usuarioId) {
         return res.status(401).json({ error: 'Acceso denegado. Por favor, inicia sesión.' });
@@ -10,17 +10,29 @@ const requerirAutenticacion = (req, res, next) => {
     next();
 };
 
-// Aplicar middleware a todas las rutas de este router
+// Middleware: verifica que el usuario sea ADMIN
+const requerirAdmin = (req, res, next) => {
+    const rol = (req.session.usuarioRol || '').toUpperCase();
+    if (rol !== 'ADMIN') {
+        return res.status(403).json({ error: 'Acceso restringido al administrador.' });
+    }
+    next();
+};
+
+// Aplicar autenticación a todas las rutas
 router.use(requerirAutenticacion);
 
-// Rutas privadas
+// Rutas accesibles por AUTOR y ADMIN
 router.get('/panel', adminController.panelAdmin);
-router.get('/autores', adminController.listarAutores);
-router.put('/autores/:id', adminController.actualizarAutor);
-router.delete('/autores/:id', adminController.eliminarAutor);
 router.post('/publicaciones', adminController.crearPublicacion);
 router.get('/publicaciones/:id', adminController.obtenerPublicacionParaEditar);
 router.put('/publicaciones/:id', adminController.actualizarPublicacion);
 router.delete('/publicaciones/:id', adminController.eliminarPublicacion);
+
+// Rutas SOLO para ADMIN
+router.get('/autores', requerirAdmin, adminController.listarAutores);
+router.post('/autores', requerirAdmin, adminController.crearAutor);
+router.put('/autores/:id', requerirAdmin, adminController.actualizarAutor);
+router.delete('/autores/:id', requerirAdmin, adminController.eliminarAutor);
 
 module.exports = router;

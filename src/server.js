@@ -31,7 +31,8 @@ app.use((req, res, next) => {
     const esPeticionHtml = req.method === 'GET' && (req.path === '/' || req.path.endsWith('.html'));
     const esRutaApi = req.path.startsWith('/api');
 
-    if (esAdmin && esPeticionHtml && !esRutaApi && req.path !== '/adminPanel.html') {
+    const rutasPermitidas = ['/adminPanel.html'];
+    if (esAdmin && esPeticionHtml && !esRutaApi && !rutasPermitidas.includes(req.path)) {
         return res.redirect('/adminPanel.html');
     }
 
