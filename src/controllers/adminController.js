@@ -267,7 +267,8 @@ const eliminarAutor = async (req, res) => {
         res.json({ mensaje: 'Autor eliminado' });
     } catch (error) {
         console.error('Error al eliminar autor:', error);
-        res.status(500).json({ error: 'Error interno del servidor al eliminar autor' });
+        const msj = error.detail || error.message || 'Error interno del servidor al eliminar autor';
+        res.status(500).json({ error: msj });
     }
 };
 

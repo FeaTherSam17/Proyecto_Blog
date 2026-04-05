@@ -210,10 +210,13 @@ const eliminarAutor = async (id_autor) => {
     try {
         await client.query('BEGIN');
 
+        // Eliminar dependencias primero
+        await client.query('DELETE FROM PUBLICACIONES WHERE ID_AUTOR = $1', [id_autor]);
+        await client.query('DELETE FROM AUTORES WHERE ID_AUTOR = $1', [id_autor]);
+
         const usuarioResult = await client.query(
             `
-                UPDATE USUARIOS
-                SET ESTADO_USUARIO = 'INACTIVO'
+                DELETE FROM USUARIOS
                 WHERE ID_USUARIO = $1 AND ROL = 'AUTOR'
                 RETURNING ID_USUARIO
             `,
@@ -224,15 +227,6 @@ const eliminarAutor = async (id_autor) => {
             await client.query('ROLLBACK');
             return null;
         }
-
-        await client.query(
-            `
-                UPDATE AUTORES
-                SET ESTADO_AUTOR = 'INACTIVO'
-                WHERE ID_AUTOR = $1
-            `,
-            [id_autor]
-        );
 
         await client.query('COMMIT');
         return { id_autor };
