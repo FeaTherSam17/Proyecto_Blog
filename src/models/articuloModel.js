@@ -90,8 +90,8 @@ const obtenerPublicacionesPorAutor = async (id_autor, filtros = {}) => {
     return result.rows;
 };
 
-// Obtener TODAS las publicaciones (para panel de ADMIN) con filtros opcionales
-const obtenerTodasPublicaciones = async (filtros = {}) => {
+// Obtener TODAS las publicaciones (para panel de ADMIN) con filtros opcionales y paginación
+const obtenerTodasPublicaciones = async (filtros = {}, limit = 10, offset = 0) => {
     const condiciones = [];
     const values = [];
     let paramIndex = 1;
@@ -122,8 +122,12 @@ const obtenerTodasPublicaciones = async (filtros = {}) => {
 
     const where = condiciones.length > 0 ? `WHERE ${condiciones.join(' AND ')}` : '';
 
+    // Agregar limit y offset al final del array de valores
+    values.push(limit, offset);
+
     const query = `
         SELECT
+            COUNT(*) OVER() AS total_registros,
             P.ID_PUBLICACION,
             P.TITULO,
             P.ESTADO_PUBLICACION,
@@ -139,9 +143,18 @@ const obtenerTodasPublicaciones = async (filtros = {}) => {
         INNER JOIN CATEGORIAS C ON P.ID_CATEGORIA = C.ID_CATEGORIA
         ${where}
         ORDER BY P.FECHA_PUBLICACION DESC
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
     const result = await pool.query(query, values);
-    return result.rows;
+    const total = result.rows.length > 0 ? parseInt(result.rows[0].total_registros) : 0;
+
+    return {
+        publicaciones: result.rows.map(row => {
+            const { total_registros, ...pub } = row;
+            return pub;
+        }),
+        total
+    };
 };
 
 // Obtener una publicación de un autor para edición

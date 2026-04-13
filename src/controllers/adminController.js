@@ -11,16 +11,19 @@ const panelAdmin = async (req, res) => {
             fechaDesde: req.query.fechaDesde,
             fechaHasta: req.query.fechaHasta
         };
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = parseInt(req.query.offset) || 0;
 
-        let publicaciones;
+        let resultado;
         if (rol === 'ADMIN') {
-            publicaciones = await articuloModel.obtenerTodasPublicaciones(filtros);
+            resultado = await articuloModel.obtenerTodasPublicaciones(filtros, limit, offset);
         } else {
             const id_autor = req.session.usuarioId;
-            publicaciones = await articuloModel.obtenerPublicacionesPorAutor(id_autor, filtros);
+            const publicaciones = await articuloModel.obtenerPublicacionesPorAutor(id_autor, filtros);
+            resultado = { publicaciones, total: publicaciones.length };
         }
 
-        res.json(publicaciones);
+        res.json(resultado);
     } catch (error) {
         console.error('Error al obtener el panel de admin:', error);
         res.status(500).json({ error: 'Error interno del servidor' });

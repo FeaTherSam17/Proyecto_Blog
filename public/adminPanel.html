@@ -72,6 +72,29 @@
                                     Total posts del autor: {{ pub.totalPostsAutor }}
                                 </p>
                             </div>
+                            <div class="pagination-container text-center mt-5 mb-4" v-if="totalPaginasPublicaciones > 1">
+                                <button type="button" class="pagination-number pagination-nav"
+                                        :disabled="paginaPublicacionesActual === 0"
+                                        @click="retrocederPaginaPublicaciones">
+                                    Anterior
+                                </button>
+
+                                <template v-for="(item, idx) in paginasPublicacionesVisibles" :key="item.type + '-' + idx">
+                                    <span v-if="item.type === 'ellipsis'" class="pagination-ellipsis">…</span>
+                                    <button v-else type="button" class="pagination-number"
+                                            :class="{ 'active': paginaPublicacionesActual === (item.page - 1) }"
+                                            @click="cambiarPaginaPublicaciones(item.page - 1)">
+                                        {{ item.page }}
+                                    </button>
+                                </template>
+
+                                <button type="button" class="pagination-number pagination-nav"
+                                        :disabled="paginaPublicacionesActual >= (totalPaginasPublicaciones - 1)"
+                                        @click="avanzarPaginaPublicaciones">
+                                    Siguiente
+                                </button>
+                            </div>
+
                             <p v-if="publicacionesFiltradasPanel.length === 0" class="text-secondary text-center empty-state">No hay publicaciones que coincidan con los filtros.</p>
                         </div>
                     </section>
@@ -99,10 +122,25 @@
                             </div>
                             
                             <div class="pagination-container text-center mt-5 mb-4" v-if="totalPaginasAutores > 1">
-                                <button type="button" class="pagination-number" v-for="page in totalPaginasAutores" :key="page" 
-                                        :class="{ 'active': paginaAutoresActual === (page - 1) }"
-                                        @click="cambiarPaginaAutores(page - 1)">
-                                    {{ page }}
+                                <button type="button" class="pagination-number pagination-nav"
+                                        :disabled="paginaAutoresActual === 0"
+                                        @click="retrocederPaginaAutores">
+                                    Anterior
+                                </button>
+
+                                <template v-for="(item, idx) in paginasAutoresVisibles" :key="item.type + '-' + idx">
+                                    <span v-if="item.type === 'ellipsis'" class="pagination-ellipsis">…</span>
+                                    <button v-else type="button" class="pagination-number"
+                                            :class="{ 'active': paginaAutoresActual === (item.page - 1) }"
+                                            @click="cambiarPaginaAutores(item.page - 1)">
+                                        {{ item.page }}
+                                    </button>
+                                </template>
+
+                                <button type="button" class="pagination-number pagination-nav"
+                                        :disabled="paginaAutoresActual >= (totalPaginasAutores - 1)"
+                                        @click="avanzarPaginaAutores">
+                                    Siguiente
                                 </button>
                             </div>
                             

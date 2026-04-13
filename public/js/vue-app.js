@@ -47,6 +47,8 @@ createApp({
             autoresPanel: [],
             paginaAutoresActual: 0,
             totalPaginasAutores: 0,
+            paginaPublicacionesActual: 0,
+            totalPaginasPublicaciones: 0,
             timerBusquedaPublicaciones: null,
             timerBusquedaAutores: null,
             nuevoAutorPanel: {
@@ -92,6 +94,12 @@ createApp({
         },
         autoresFiltradosPanel() {
             return this.autoresPanel;
+        },
+        paginasPublicacionesVisibles() {
+            return this.construirPaginadoVisible(this.totalPaginasPublicaciones, this.paginaPublicacionesActual);
+        },
+        paginasAutoresVisibles() {
+            return this.construirPaginadoVisible(this.totalPaginasAutores, this.paginaAutoresActual);
         }
     },
     watch: {
@@ -112,6 +120,45 @@ createApp({
         }
     },
     methods: {
+        construirPaginadoVisible(totalPaginas, paginaActual) {
+            const total = Number(totalPaginas) || 0;
+            const actual = Number(paginaActual) || 0;
+            if (total <= 1) return [];
+
+            if (total <= 7) {
+                return Array.from({ length: total }, (_, idx) => ({ type: 'page', page: idx + 1 }));
+            }
+
+            // Devuelve un array de items: { type: 'page', page: number } o { type: 'ellipsis' }
+            // `page` es 1-based para render; el índice real es `page - 1`.
+            const items = [];
+            const addPage = (page) => items.push({ type: 'page', page });
+            const addEllipsis = () => {
+                if (items.length === 0 || items[items.length - 1].type === 'ellipsis') return;
+                items.push({ type: 'ellipsis' });
+            };
+
+            const currentPage = Math.min(Math.max(actual + 1, 1), total);
+
+            // Ventana de páginas alrededor de la actual
+            const windowSize = 2; // muestra actual ±2
+            const start = Math.max(2, currentPage - windowSize);
+            const end = Math.min(total - 1, currentPage + windowSize);
+
+            addPage(1);
+
+            if (start > 2) addEllipsis();
+
+            for (let page = start; page <= end; page += 1) {
+                addPage(page);
+            }
+
+            if (end < total - 1) addEllipsis();
+
+            if (total > 1) addPage(total);
+
+            return items;
+        },
         async cargarPublicaciones() {
             try {
                 const res = await fetch('/api/blog/posts');
@@ -408,7 +455,7 @@ createApp({
                 clearTimeout(this.timerBusquedaPublicaciones);
             }
             this.timerBusquedaPublicaciones = setTimeout(() => {
-                this.cargarPublicacionesPanel();
+                this.cargarPublicacionesPanel(0);
             }, 300);
         },
         dispararBusquedaAutores() {
@@ -419,17 +466,10 @@ createApp({
                 this.cargarAutoresPanel();
             }, 300);
         },
-        async cargarPublicacionesPanel() {
+        async cargarPublicacionesPanel(pagina = 0) {
             try {
-                const tieneFiltros = this.filtrosPublicacionesPanel.autor || 
-                                     this.filtrosPublicacionesPanel.estatus || 
-                                     this.filtrosPublicacionesPanel.fechaDesde || 
-                                     this.filtrosPublicacionesPanel.fechaHasta;
-                
-                if (!tieneFiltros) {
-                    this.publicacionesPanel = [];
-                    return;
-                }
+                this.paginaPublicacionesActual = pagina;
+                const limitStr = 10;
 
                 const params = new URLSearchParams();
                 if (this.filtrosPublicacionesPanel.autor) {
@@ -444,18 +484,20 @@ createApp({
                 if (this.filtrosPublicacionesPanel.fechaHasta) {
                     params.set('fechaHasta', this.filtrosPublicacionesPanel.fechaHasta);
                 }
+                params.set('limit', limitStr);
+                params.set('offset', this.paginaPublicacionesActual * limitStr);
 
-                const query = params.toString();
-                const res = await fetch(`/api/admin/panel${query ? `?${query}` : ''}`);
+                const res = await fetch(`/api/admin/panel?${params.toString()}`);
                 if (!res.ok) {
-                    if (res.status === 401) {
-                        window.location.href = '/login.html';
-                    }
+                    if (res.status === 401) window.location.href = '/login.html';
                     return;
                 }
 
-                const publicaciones = await res.json();
-                this.publicacionesPanel = publicaciones.map((pub) => ({
+                const payload = await res.json();
+                const pubsDB = Array.isArray(payload) ? payload : (payload.publicaciones || []);
+                const total = Array.isArray(payload) ? pubsDB.length : (payload.total || 0);
+
+                this.publicacionesPanel = pubsDB.map((pub) => ({
                     id: pub.id_publicacion,
                     titulo: pub.titulo,
                     autor: pub.autor_nombre || '',
@@ -463,6 +505,8 @@ createApp({
                     estatus: pub.estado_publicacion,
                     totalPostsAutor: pub.total_posts_autor || 0
                 }));
+
+                this.totalPaginasPublicaciones = Math.ceil(total / limitStr);
             } catch (err) {
                 console.error('Error al cargar publicaciones del panel:', err);
             }
@@ -512,6 +556,23 @@ createApp({
             if (pagina >= 0 && pagina < this.totalPaginasAutores) {
                 this.cargarAutoresPanel(pagina);
             }
+        },
+        cambiarPaginaPublicaciones(pagina) {
+            if (pagina >= 0 && pagina < this.totalPaginasPublicaciones) {
+                this.cargarPublicacionesPanel(pagina);
+            }
+        },
+        retrocederPaginaAutores() {
+            this.cambiarPaginaAutores(this.paginaAutoresActual - 1);
+        },
+        avanzarPaginaAutores() {
+            this.cambiarPaginaAutores(this.paginaAutoresActual + 1);
+        },
+        retrocederPaginaPublicaciones() {
+            this.cambiarPaginaPublicaciones(this.paginaPublicacionesActual - 1);
+        },
+        avanzarPaginaPublicaciones() {
+            this.cambiarPaginaPublicaciones(this.paginaPublicacionesActual + 1);
         },
         abrirModalAutorPanel() {
             this.errorMsg = '';
