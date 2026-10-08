@@ -8,10 +8,11 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: proyecto_blog
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./BD/init-docker.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./BD/datos_prueba.sql:/docker-entrypoint-initdb.d/02-datos_prueba.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d proyecto_blog"]
       interval: 5s
