@@ -27,7 +27,7 @@
       <section v-if="publicaciones.length > 0">
         <h5 class="section-title mb-4">PUBLICACIONES RECIENTES</h5>
         <RouterLink
-          v-for="pub in publicaciones"
+          v-for="pub in publicacionesPaginadas"
           :key="pub.id_publicacion"
           :to="`/articulo/${pub.id_publicacion}`"
           class="blog-card"
@@ -45,6 +45,35 @@
             <span style="font-size: 0.75rem; font-weight: 900; text-transform: uppercase;">LEER MÁS &rarr;</span>
           </div>
         </RouterLink>
+
+        <!-- Controles de Paginación -->
+        <div class="pagination-container mt-5 mb-4" v-if="totalPaginas > 1">
+          <button 
+            class="pagination-number pagination-nav" 
+            :disabled="paginaActual === 1" 
+            @click="paginaActual--"
+          >
+            &larr; ANT
+          </button>
+          
+          <button 
+            v-for="pag in totalPaginas" 
+            :key="pag"
+            class="pagination-number"
+            :class="{ active: paginaActual === pag }"
+            @click="paginaActual = pag"
+          >
+            {{ pag }}
+          </button>
+          
+          <button 
+            class="pagination-number pagination-nav" 
+            :disabled="paginaActual === totalPaginas" 
+            @click="paginaActual++"
+          >
+            SIG &rarr;
+          </button>
+        </div>
       </section>
       <section v-else>
         <p class="text-secondary">No hay publicaciones disponibles.</p>
@@ -78,7 +107,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api, formatearFecha } from '../services/api.js'
 
@@ -86,6 +115,24 @@ const publicaciones = ref([])
 const categorias = ref([])
 const categoriaSeleccionada = ref(null)
 const usuarioActual = ref(null)
+
+const paginaActual = ref(1)
+const itemsPorPagina = 20
+
+const totalPaginas = computed(() => {
+  return Math.ceil(publicaciones.value.length / itemsPorPagina)
+})
+
+const publicacionesPaginadas = computed(() => {
+  const inicio = (paginaActual.value - 1) * itemsPorPagina
+  const fin = inicio + itemsPorPagina
+  return publicaciones.value.slice(inicio, fin)
+})
+
+// Volver a la página 1 si cambian las publicaciones
+watch(publicaciones, () => {
+  paginaActual.value = 1
+})
 
 onMounted(async () => {
   try {
