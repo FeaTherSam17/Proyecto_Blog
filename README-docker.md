@@ -1,33 +1,37 @@
 # Guía de Entorno Docker - Proyecto Blog
 
-Este documento explica cómo levantar el entorno de desarrollo utilizando Docker, asegurando que todos en el equipo tengamos exactamente la misma base de datos, estructura y usuarios de prueba.
+Este documento explica cómo levantar el entorno de desarrollo utilizando Docker. La arquitectura del proyecto está dividida en un Backend (API REST Node.js) y un Frontend (Vue 3 / Vite), ambos corriendo en contenedores con Hot-Reloading junto a una base de datos PostgreSQL.
 
 ---
 
 ## 1. Instalación por Primera Vez (Entorno Nuevo)
 
-Si es la primera vez que descargas el proyecto o nunca habías levantado Docker en tu computadora, solo necesitas abrir tu terminal en la carpeta raíz del proyecto (`/mi-blog`) y ejecutar:
+Abre tu terminal en la carpeta raíz del proyecto (`/mi-blog`) y ejecuta:
 
 ```bash
 docker-compose up -d --build
 ```
 
 **¿Qué hace este comando?**
-1. Instala automáticamente todas las dependencias de Node.js (ya no necesitas correr `npm install` localmente).
-2. Levanta un contenedor de PostgreSQL.
-3. Ejecuta en automático los scripts `init-docker.sql` y `datos_prueba.sql`.
-4. Al terminar, tu base de datos tendrá la estructura lista junto con la administradora (Erika) y los 50 usuarios de prueba con sus publicaciones.
+1. Instala automáticamente las dependencias del Backend (Node.js) y levanta el servidor API.
+2. Instala automáticamente las dependencias del Frontend (Vue) y levanta el servidor Vite.
+3. Levanta un contenedor de PostgreSQL.
+4. Ejecuta en automático los scripts `init-docker.sql` y `datos_prueba.sql` (creando la administradora y usuarios de prueba).
 
-Para ver que el servidor de Node arrancó correctamente, puedes entrar a:
-👉 [http://localhost:3000/inicio.html](http://localhost:3000/inicio.html)
+Al terminar (puede tardar un minuto la primera vez instalando dependencias), tendrás acceso a:
+
+* 🌐 **Frontend (Vue):** 👉 [http://localhost:5174](http://localhost:5174)
+* ⚙️ **Backend API (Express):** 👉 `http://localhost:3002`
+
+*Nota: Cualquier cambio que hagas en `src/` (backend) o en `frontend/src/` (Vue) se recargará automáticamente en tiempo real gracias a los volúmenes de Docker.*
 
 ---
 
 ## 2. Actualización (Limpiar una Base de Datos Vieja)
 
-**IMPORTANTE:** Si ya habías corrido el proyecto antes, Docker guardó tu base de datos antigua en un volumen (`postgres_data`). Si el equipo hizo cambios recientes en la estructura (nuevas tablas o nuevos usuarios de prueba), **Docker NO ejecutará los nuevos cambios automáticamente** a menos que borres ese volumen.
+**IMPORTANTE:** Docker guarda tu base de datos en un volumen (`postgres_data`). Si el equipo hizo cambios en la estructura SQL (nuevas tablas o datos), **Docker NO ejecutará los nuevos scripts automáticamente** a menos que borres ese volumen.
 
-Para actualizar tu base de datos a la versión más reciente del código, ejecuta:
+Para resetear tu base de datos a la versión más reciente del código:
 
 ```bash
 # 1. Apaga el proyecto y destruye el volumen viejo (la -v es obligatoria)
@@ -37,16 +41,14 @@ docker-compose down -v
 docker-compose up -d --build
 ```
 
-*(Después de esto, si tenías abierto pgAdmin, recuerda desconectarte y volver a conectarte para ver la tabla limpia).*
-
 ---
 
-## 3. Datos de Conexión (pgAdmin / DBeaver)
+## 3. Datos de Conexión (pgAdmin / DBeaver / TablePlus)
 
-Si necesitas explorar la base de datos visualmente para revisar tablas o consultas, configura tu conexión con los siguientes datos:
+Si necesitas conectarte a la base de datos visualmente desde tu computadora, usa estos datos:
 
 * **Host name/address:** `localhost`
-* **Port:** `5434` *(OJO: Se cambió al 5434 para evitar conflictos con PostgreSQL local)*
+* **Port:** `5435` *(Mapeado para no interferir con otros proyectos Docker)*
 * **Maintenance database:** `proyecto_blog`
 * **Username:** `postgres`
 * **Password:** `admin`
@@ -55,9 +57,14 @@ Si necesitas explorar la base de datos visualmente para revisar tablas o consult
 
 ## 4. Comandos Útiles
 
-Si quieres ver los logs de la aplicación o de la base de datos para buscar errores en tiempo real:
+Si quieres ver los logs de los 3 contenedores (útil si la pantalla se queda en blanco o hay errores):
 ```bash
 docker-compose logs -f
+```
+
+Si quieres ver solo los logs del frontend (Vite):
+```bash
+docker-compose logs -f frontend
 ```
 
 Si quieres apagar el proyecto al final del día (sin borrar la base de datos):

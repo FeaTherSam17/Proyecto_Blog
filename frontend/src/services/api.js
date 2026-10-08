@@ -1,0 +1,41 @@
+// Servicio centralizado para las llamadas a la API del backend
+const BASE = ''  // En dev Vite proxy redirige /api → backend
+
+export const api = {
+  async get(path) {
+    const res = await fetch(BASE + path)
+    if (!res.ok) throw { status: res.status, data: await res.json().catch(() => ({})) }
+    return res.json()
+  },
+  async post(path, body) {
+    const res = await fetch(BASE + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw { status: res.status, data }
+    return data
+  },
+  async put(path, body) {
+    const res = await fetch(BASE + path, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw { status: res.status, data }
+    return data
+  },
+  async delete(path) {
+    const res = await fetch(BASE + path, { method: 'DELETE' })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw { status: res.status, data }
+    return data
+  },
+}
+
+export function formatearFecha(fechaStr) {
+  const fecha = new Date(fechaStr)
+  return fecha.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }).toUpperCase()
+}

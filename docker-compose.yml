@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: proyecto_blog
     ports:
-      - "5434:5432"
+      - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./BD/init-docker.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
@@ -19,11 +19,11 @@ services:
       timeout: 5s
       retries: 10
 
-  app:
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mi-blog-app
+    container_name: mi-blog-backend
     command: npm run dev
     restart: unless-stopped
     depends_on:
@@ -35,13 +35,30 @@ services:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: proyecto_blog
-      PORT: 3000
+      PORT: 3002
       SESSION_SECRET: super_secreto_blog
       CHOKIDAR_USEPOLLING: "true"
     ports:
-      - "3000:3000"
+      - "3002:3002"
     volumes:
       - ./:/app
+      - /app/node_modules
+
+  frontend:
+    image: node:20-alpine
+    container_name: mi-blog-frontend
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_PROXY_TARGET: "http://backend:3002"
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "5174:5174"
+    volumes:
+      - ./frontend:/app
       - /app/node_modules
 
 volumes:

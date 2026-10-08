@@ -117,7 +117,10 @@ h1, h2, h3, h4, h5, .navbar-brand, .section-title {
 .mb-3 { margin-bottom: 1rem; }
 .mb-4 { margin-bottom: 1.5rem; }
 .mb-5 { margin-bottom: 3rem; }
+.mt-3 { margin-top: 1rem; }
 .mt-4 { margin-top: 1.5rem; }
+.p-3 { padding: 1rem; }
+.p-4 { padding: 1.5rem; }
 .gap-3 { gap: 1rem; }
 .gap-4 { gap: 1.5rem; }
 
@@ -198,7 +201,6 @@ h1, h2, h3, h4, h5, .navbar-brand, .section-title {
 
 .table th {
     background-color: #fcfcfc;
-    /* Estilos copiados de category-tag para mantener el diseño */
     font-size: 0.75rem;
     font-weight: 900;
     text-transform: uppercase;
@@ -215,6 +217,7 @@ h1, h2, h3, h4, h5, .navbar-brand, .section-title {
     display: inline-block;
 }
 
+.text-danger { color: #dc3545; }
 
 /* --- ESTILOS DEL PANEL ADMIN --- */
 .admin-menu-link {
@@ -227,12 +230,12 @@ h1, h2, h3, h4, h5, .navbar-brand, .section-title {
 }
 
 .admin-menu-link.active {
-    background-color: #0d6efd; /* Color azul del diseño */
+    background-color: #0d6efd;
     color: var(--pure-white);
 }
 
 .admin-menu-link.text-danger {
-    color: #dc3545; /* Color rojo para cerrar sesión */
+    color: #dc3545;
 }
 
 /* --- ESTILOS DE ADMIN PANEL V2 --- */
@@ -417,10 +420,6 @@ h1, h2, h3, h4, h5, .navbar-brand, .section-title {
     padding: 2rem 1rem;
     overflow-y: auto;
     z-index: 2000;
-}
-
-.modal-backdrop[hidden] {
-    display: none;
 }
 
 .modal-card {

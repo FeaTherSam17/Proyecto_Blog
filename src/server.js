@@ -25,22 +25,16 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Si es ADMIN, solo puede navegar en adminPanel mientras mantenga sesión activa.
-app.use((req, res, next) => {
-    const esAdmin = (req.session.usuarioRol || '').toUpperCase() === 'ADMIN';
-    const esPeticionHtml = req.method === 'GET' && (req.path === '/' || req.path.endsWith('.html'));
-    const esRutaApi = req.path.startsWith('/api');
-
-    const rutasPermitidas = ['/adminPanel.html'];
-    if (esAdmin && esPeticionHtml && !esRutaApi && !rutasPermitidas.includes(req.path)) {
-        return res.redirect('/adminPanel.html');
-    }
-
-    next();
-});
-
-// Servir archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, '../public')));
+// El frontend Vue corre en Vite (puerto 5173 en dev).
+// En producción, servir el build de Vite desde frontend/dist.
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../frontend/dist')));
+    app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api')) {
+            res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+        }
+    });
+}
 
 // Rutas API
 app.use('/api/auth', authRoutes);
@@ -49,6 +43,6 @@ app.use('/api/admin', adminRoutes);
 
 // Iniciar el servidor
 app.listen(port, () => {
-    console.log(`Servidor escuchando en http://localhost:${port}`);
-    console.log(`Haz clic aquí para ver inicio: http://localhost:${port}/inicio.html`);
+    console.log(`API Backend escuchando en http://localhost:${port}`);
+    console.log(`Frontend Vue: cd frontend && npm run dev`);
 });
