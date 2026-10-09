@@ -22,6 +22,33 @@
             <label class="category-tag mb-2" style="font-size: 0.75rem;">CONTRASEÑA</label>
             <input type="password" v-model="loginData.contrasena" class="form-control w-100" required>
           </div>
+          <div class="mb-4">
+            <label class="category-tag mb-2" style="font-size: 0.75rem;">CAPTCHA MATEMÁTICO</label>
+            <div class="captcha-row">
+              <span class="captcha-question" aria-live="polite">
+                {{ captchaPregunta || 'Cargando...' }}
+              </span>
+              <input
+                type="text"
+                v-model="loginData.captchaRespuesta"
+                class="form-control captcha-answer"
+                inputmode="numeric"
+                maxlength="4"
+                pattern="[0-9]{1,4}"
+                aria-label="Resultado del captcha matemático"
+                @input="normalizarCaptcha"
+                required
+              >
+              <button
+                type="button"
+                class="btn-editorial captcha-refresh"
+                aria-label="Generar otro captcha"
+                @click="cargarCaptcha"
+              >
+                <span aria-hidden="true">↻</span>
+              </button>
+            </div>
+          </div>
 
           <p v-if="errorMsg" class="text-danger" style="font-size: 0.8rem; text-align: center;">{{ errorMsg }}</p>
 
@@ -43,14 +70,32 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { api } from '../services/api.js'
 
 const router = useRouter()
 const cargando = ref(false)
 const errorMsg = ref('')
-const loginData = ref({ email: '', contrasena: '' })
+const captchaPregunta = ref('')
+const loginData = ref({ email: '', contrasena: '', captchaRespuesta: '' })
+
+function normalizarCaptcha(event) {
+  const respuesta = event.target.value.replace(/\D/g, '').slice(0, 4)
+  event.target.value = respuesta
+  loginData.value.captchaRespuesta = respuesta
+}
+
+async function cargarCaptcha() {
+  loginData.value.captchaRespuesta = ''
+  try {
+    const data = await api.get('/api/auth/captcha')
+    captchaPregunta.value = data.pregunta
+  } catch {
+    captchaPregunta.value = ''
+    errorMsg.value = 'No se pudo cargar el captcha. Intenta de nuevo.'
+  }
+}
 
 async function hacerLogin() {
   cargando.value = true
@@ -65,8 +110,66 @@ async function hacerLogin() {
     }
   } catch (e) {
     errorMsg.value = e.data?.error || 'Autenticación fallida'
+    if (e.status !== 429) {
+      await cargarCaptcha()
+    }
   } finally {
     cargando.value = false
   }
 }
+
+onMounted(cargarCaptcha)
 </script>
+
+<style scoped>
+.captcha-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5.5rem 2.75rem;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.captcha-question {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.5rem 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border-dark);
+  background-color: var(--cream-bg);
+  color: var(--dark-text);
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.captcha-answer {
+  width: 100%;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.8rem 0.5rem;
+  text-align: center;
+}
+
+.captcha-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+@media (max-width: 360px) {
+  .captcha-row {
+    grid-template-columns: minmax(0, 1fr) 4.5rem 2.5rem;
+    gap: 0.35rem;
+  }
+}
+</style>

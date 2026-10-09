@@ -1,4 +1,71 @@
 const usuarioModel = require('../models/usuarioModel');
+const crypto = require('crypto');
+
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_BLOCK_TIME_MS = 60 * 1000;
+const MAX_CAPTCHA_LENGTH = 4;
+const loginAttempts = new Map();
+
+function obtenerClaveRateLimit(req) {
+    return req.ip || req.socket.remoteAddress || 'unknown';
+}
+
+function obtenerEstadoRateLimit(req) {
+    const key = obtenerClaveRateLimit(req);
+    const estado = loginAttempts.get(key);
+
+    if (!estado) {
+        return { key, attempts: 0, blockedUntil: 0 };
+    }
+
+    if (estado.blockedUntil && estado.blockedUntil <= Date.now()) {
+        loginAttempts.delete(key);
+        return { key, attempts: 0, blockedUntil: 0 };
+    }
+
+    return { key, ...estado };
+}
+
+function registrarIntentoFallido(key) {
+    const estado = loginAttempts.get(key) || { attempts: 0, blockedUntil: 0 };
+    estado.attempts += 1;
+
+    if (estado.attempts >= MAX_LOGIN_ATTEMPTS) {
+        estado.blockedUntil = Date.now() + LOGIN_BLOCK_TIME_MS;
+    }
+
+    loginAttempts.set(key, estado);
+    return estado;
+}
+
+function limpiarIntentos(key) {
+    loginAttempts.delete(key);
+}
+
+function generarCaptcha() {
+    let numero1 = crypto.randomInt(1, 11);
+    let numero2 = crypto.randomInt(1, 11);
+    if (numero1 < numero2) {
+        [numero1, numero2] = [numero2, numero1];
+    }
+    const operaciones = [
+        { simbolo: '+', respuesta: numero1 + numero2 },
+        { simbolo: '-', respuesta: numero1 - numero2 },
+        { simbolo: '*', respuesta: numero1 * numero2 }
+    ];
+    const operacion = operaciones[crypto.randomInt(0, operaciones.length)];
+
+    return {
+        pregunta: `${numero1} ${operacion.simbolo} ${numero2}`,
+        respuesta: String(operacion.respuesta)
+    };
+}
+
+const obtenerCaptcha = (req, res) => {
+    const captcha = generarCaptcha();
+    req.session.captcha = captcha;
+    res.json({ pregunta: captcha.pregunta });
+};
 
 const registrar = async (req, res) => {
     try {
@@ -72,26 +139,56 @@ const registrar = async (req, res) => {
 };
 
 const login = async (req, res) => {
+    const rateLimit = obtenerEstadoRateLimit(req);
+    if (rateLimit.blockedUntil) {
+        const retryAfter = Math.ceil((rateLimit.blockedUntil - Date.now()) / 1000);
+        res.set('Retry-After', String(retryAfter));
+        return res.status(429).json({
+            error: `Demasiados intentos. Intenta de nuevo en ${retryAfter} segundos`,
+            retryAfter
+        });
+    }
+
     try {
-        const { email, contrasena } = req.body;
+        const { email, contrasena, captchaRespuesta } = req.body;
 
         if (!email || !contrasena) {
+            registrarIntentoFallido(rateLimit.key);
             return res.status(400).json({ error: 'Email y contraseña son requeridos' });
         }
 
+        if (!/^\d{1,4}$/.test(String(captchaRespuesta || ''))) {
+            registrarIntentoFallido(rateLimit.key);
+            return res.status(400).json({
+                error: `El captcha solo acepta números de hasta ${MAX_CAPTCHA_LENGTH} caracteres`
+            });
+        }
+
+        const captcha = req.session.captcha;
+        if (!captcha || String(captchaRespuesta).trim() !== captcha.respuesta) {
+            registrarIntentoFallido(rateLimit.key);
+            return res.status(400).json({ error: 'El resultado del captcha es incorrecto' });
+        }
+        delete req.session.captcha;
+
         const usuario = await usuarioModel.buscarUsuarioPorEmail(email);
         if (!usuario) {
+            registrarIntentoFallido(rateLimit.key);
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
         if (usuario.estado_usuario !== 'ACTIVO') {
+            registrarIntentoFallido(rateLimit.key);
             return res.status(403).json({ error: 'Usuario inactivo' });
         }
 
         // Verificar contraseña
         if (contrasena !== usuario.contrasena) {
+            registrarIntentoFallido(rateLimit.key);
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
+
+        limpiarIntentos(rateLimit.key);
 
         // Guardar sesión
         req.session.usuarioId = usuario.id_usuario;
@@ -152,6 +249,7 @@ const obtenerSexos = async (req, res) => {
 
 module.exports = {
     registrar,
+    obtenerCaptcha,
     login,
     logout,
     obtenerUsuarioActual,
