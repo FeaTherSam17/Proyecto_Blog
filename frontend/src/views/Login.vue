@@ -13,7 +13,14 @@
 
         <h2 class="section-title text-center mb-4" style="font-size: 1.5rem;">ACCESO USUARIO</h2>
 
-        <form @submit.prevent="hacerLogin">
+        <!-- Estos eventos generan indicadores de interacción, no registran el contenido
+             de las teclas ni las coordenadas del mouse. -->
+        <form
+          @submit.prevent="hacerLogin"
+          @mousemove="registrarMovimiento"
+          @focusin="registrarFocus"
+          @keyup="registrarKeyup"
+        >
           <div class="mb-3">
             <label class="category-tag mb-2" style="font-size: 0.75rem;">EMAIL</label>
             <input type="email" v-model="loginData.email" class="form-control w-100" required>
@@ -79,6 +86,57 @@ const cargando = ref(false)
 const errorMsg = ref('')
 const captchaPregunta = ref('')
 const loginData = ref({ email: '', contrasena: '', captchaRespuesta: '' })
+// Estado temporal de la interacción durante un intento de login.
+let inicioFocus = null
+let ultimoKeyup = null
+let movimientos = 0
+const intervalosKeyup = []
+
+// performance.now() permite medir intervalos con mayor precisión en el navegador.
+function ahora() {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now()
+}
+
+function registrarMovimiento() {
+  // Sólo se cuenta la actividad; no se almacenan posiciones del cursor.
+  movimientos += 1
+}
+
+function registrarFocus() {
+  // El primer focus marca el inicio de la interacción con el formulario.
+  if (inicioFocus === null) {
+    inicioFocus = ahora()
+  }
+}
+
+function registrarKeyup() {
+  const momento = ahora()
+  // Se guardan tiempos entre teclas, nunca las teclas presionadas.
+  if (ultimoKeyup !== null && intervalosKeyup.length < 100) {
+    intervalosKeyup.push(Math.round(momento - ultimoKeyup))
+  }
+  ultimoKeyup = momento
+}
+
+function obtenerComportamiento() {
+  const momentoActual = ahora()
+  // Se prepara el resumen que viajará dentro del JSON del login.
+  return {
+    mousemove_count: movimientos,
+    keyup_count: ultimoKeyup === null ? 0 : intervalosKeyup.length + 1,
+    keyup_intervals_ms: [...intervalosKeyup],
+    focus_submit_ms: inicioFocus === null ? 0 : Math.round(momentoActual - inicioFocus),
+    // Es un indicador de interacción de teclado; no contiene las teclas presionadas.
+    send_keys_detected: ultimoKeyup !== null
+  }
+}
+
+function reiniciarComportamiento() {
+  inicioFocus = null
+  ultimoKeyup = null
+  movimientos = 0
+  intervalosKeyup.length = 0
+}
 
 function normalizarCaptcha(event) {
   const respuesta = event.target.value.replace(/\D/g, '').slice(0, 4)
@@ -100,8 +158,14 @@ async function cargarCaptcha() {
 async function hacerLogin() {
   cargando.value = true
   errorMsg.value = ''
+  const comportamiento = obtenerComportamiento()
   try {
-    const data = await api.post('/api/auth/login', loginData.value)
+    // Las credenciales se validan en el backend; el comportamiento sólo aporta
+    // señales adicionales para el análisis humano/bot.
+    const data = await api.post('/api/auth/login', {
+      ...loginData.value,
+      comportamiento
+    })
     const rol = (data.rol || '').toUpperCase()
     if (rol === 'ADMIN') {
       router.push('/admin-panel')
@@ -115,6 +179,7 @@ async function hacerLogin() {
     }
   } finally {
     cargando.value = false
+    reiniciarComportamiento()
   }
 }
 

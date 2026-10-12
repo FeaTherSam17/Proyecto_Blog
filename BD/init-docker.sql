@@ -119,6 +119,8 @@ AUTORES_ID_AUTOR_FK FOREIGN KEY (ID_AUTOR) REFERENCES USUARIOS(ID_USUARIO);
 -- Esta tabla no almacena contraseñas ni respuestas del CAPTCHA. Registra únicamente
 -- el resultado del acceso y los datos necesarios para medir seguridad y uso:
 -- intentos exitosos/fallidos, motivo, duración, hora, IP y navegador.
+-- COMPORTAMIENTO contiene los contadores y tiempos enviados por Vue.
+-- CLASIFICACION_COMPORTAMIENTO conserva la señal orientativa del backend.
 CREATE TABLE METRICAS_ACCESO (
     ID_EVENTO BIGSERIAL PRIMARY KEY,
     ID_USUARIO INTEGER,
@@ -128,6 +130,7 @@ CREATE TABLE METRICAS_ACCESO (
     DIRECCION_IP INET,
     AGENTE_USUARIO VARCHAR(500),
     DURACION_MS INTEGER,
+    -- Resumen de interacción: movimientos, keyup, intervalos y tiempo focus-submit.
     COMPORTAMIENTO JSONB,
     CLASIFICACION_COMPORTAMIENTO VARCHAR(20),
     FECHA_EVENTO TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -165,8 +168,8 @@ CREATE INDEX METRICAS_ACCESO_RESULTADO_IDX
 CREATE INDEX METRICAS_ACCESO_USUARIO_IDX
     ON METRICAS_ACCESO (ID_USUARIO, FECHA_EVENTO);
 
--- Vista de indicadores diarios para el panel administrativo o reportes:
--- volumen de intentos, éxito, fallos, usuarios distintos y duración promedio.
+-- Vista de indicadores diarios para el panel administrativo o reportes.
+-- Resume volumen, éxito, fallos, usuarios distintos y duración promedio.
 CREATE VIEW VW_METRICAS_LOGIN_DIARIAS AS
 SELECT
     DATE(FECHA_EVENTO) AS FECHA,

@@ -238,6 +238,43 @@ const eliminarAutor = async (id_autor) => {
     }
 };
 
+// Persiste el resultado del login/logout y sus indicadores de comportamiento.
+// La contraseña nunca forma parte de los parámetros de esta función.
+const registrarEventoAcceso = async ({
+    id_usuario = null,
+    email_ingresado = null,
+    tipo_evento,
+    motivo,
+    direccion_ip = null,
+    agente_usuario = null,
+    duracion_ms = null,
+    comportamiento = null,
+    clasificacion_comportamiento = null
+}) => {
+    // COMPORTAMIENTO se guarda como JSONB para conservar el resumen de Vue
+    // y permitir consultas posteriores sobre sus propiedades.
+    const query = `
+        INSERT INTO METRICAS_ACCESO (
+            ID_USUARIO, EMAIL_INGRESADO, TIPO_EVENTO, MOTIVO,
+            DIRECCION_IP, AGENTE_USUARIO, DURACION_MS,
+            COMPORTAMIENTO, CLASIFICACION_COMPORTAMIENTO
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `;
+
+    await pool.query(query, [
+        id_usuario,
+        email_ingresado,
+        tipo_evento,
+        motivo,
+        direccion_ip,
+        agente_usuario,
+        duracion_ms,
+        comportamiento,
+        clasificacion_comportamiento
+    ]);
+};
+
 module.exports = {
     registrarAutor,
     buscarUsuarioPorEmail,
@@ -245,5 +282,6 @@ module.exports = {
     obtenerSexos,
     obtenerAutores,
     actualizarAutor,
-    eliminarAutor
+    eliminarAutor,
+    registrarEventoAcceso
 };
