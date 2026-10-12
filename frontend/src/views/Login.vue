@@ -15,28 +15,49 @@
 
         <!-- Estos eventos generan indicadores de interacción, no registran el contenido
              de las teclas ni las coordenadas del mouse. -->
+        <!-- Los identificadores variables dificultan que un bot dependa de selectores
+             fijos; no sustituyen CAPTCHA, autenticación ni validación del backend. -->
         <form
+          :data-dom-token="domTokens.form"
           @submit.prevent="hacerLogin"
           @mousemove="registrarMovimiento"
           @focusin="registrarFocus"
           @keyup="registrarKeyup"
         >
           <div class="mb-3">
-            <label class="category-tag mb-2" style="font-size: 0.75rem;">EMAIL</label>
-            <input type="email" v-model="loginData.email" class="form-control w-100" required>
+            <label :for="domTokens.emailId" class="category-tag mb-2" style="font-size: 0.75rem;">EMAIL</label>
+            <input
+              :id="domTokens.emailId"
+              :name="domTokens.emailName"
+              type="email"
+              autocomplete="username"
+              v-model="loginData.email"
+              class="form-control w-100"
+              required
+            >
           </div>
           <div class="mb-4">
-            <label class="category-tag mb-2" style="font-size: 0.75rem;">CONTRASEÑA</label>
-            <input type="password" v-model="loginData.contrasena" class="form-control w-100" required>
+            <label :for="domTokens.passwordId" class="category-tag mb-2" style="font-size: 0.75rem;">CONTRASEÑA</label>
+            <input
+              :id="domTokens.passwordId"
+              :name="domTokens.passwordName"
+              type="password"
+              autocomplete="current-password"
+              v-model="loginData.contrasena"
+              class="form-control w-100"
+              required
+            >
           </div>
           <div class="mb-4">
-            <label class="category-tag mb-2" style="font-size: 0.75rem;">CAPTCHA MATEMÁTICO</label>
+            <label :for="domTokens.captchaId" class="category-tag mb-2" style="font-size: 0.75rem;">CAPTCHA MATEMÁTICO</label>
             <div class="captcha-row">
               <span class="captcha-question" aria-live="polite">
                 {{ captchaPregunta || 'Cargando...' }}
               </span>
               <input
                 type="text"
+                :id="domTokens.captchaId"
+                :name="domTokens.captchaName"
                 v-model="loginData.captchaRespuesta"
                 class="form-control captcha-answer"
                 inputmode="numeric"
@@ -48,6 +69,7 @@
               >
               <button
                 type="button"
+                :id="domTokens.refreshId"
                 class="btn-editorial captcha-refresh"
                 aria-label="Generar otro captcha"
                 @click="cargarCaptcha"
@@ -59,7 +81,13 @@
 
           <p v-if="errorMsg" class="text-danger" style="font-size: 0.8rem; text-align: center;">{{ errorMsg }}</p>
 
-          <button type="submit" class="btn-editorial w-100" style="padding: 1rem;" :disabled="cargando">
+          <button
+            :id="domTokens.submitId"
+            type="submit"
+            class="btn-editorial w-100"
+            style="padding: 1rem;"
+            :disabled="cargando"
+          >
             {{ cargando ? 'CARGANDO...' : 'ENTRAR' }}
           </button>
           <div class="text-center mt-4">
@@ -86,6 +114,32 @@ const cargando = ref(false)
 const errorMsg = ref('')
 const captchaPregunta = ref('')
 const loginData = ref({ email: '', contrasena: '', captchaRespuesta: '' })
+
+// Ofuscación ligera del DOM: se generan identificadores distintos por carga para
+// evitar que un automatizador dependa de ids/names predecibles. Las etiquetas
+// mantienen sus referencias dinámicas para conservar la accesibilidad.
+function generarToken() {
+  const bytes = new Uint32Array(2)
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(bytes)
+    return Array.from(bytes, valor => valor.toString(36)).join('')
+  }
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`
+}
+
+const tokenDom = generarToken()
+const domTokens = {
+  form: `f-${tokenDom}`,
+  emailId: `i-${tokenDom}-a`,
+  emailName: `n-${tokenDom}-a`,
+  passwordId: `i-${tokenDom}-b`,
+  passwordName: `n-${tokenDom}-b`,
+  captchaId: `i-${tokenDom}-c`,
+  captchaName: `n-${tokenDom}-c`,
+  refreshId: `b-${tokenDom}-r`,
+  submitId: `b-${tokenDom}-s`
+}
+
 // Estado temporal de la interacción durante un intento de login.
 let inicioFocus = null
 let ultimoKeyup = null
