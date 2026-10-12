@@ -1,5 +1,7 @@
 -- No se requiere pgcrypto para este proyecto escolar
 
+--psql -U postgres -d proyecto_blog 
+
 -- 2. TABLA CATÁLOGO: SEXOS
 CREATE TABLE CAT_SEXOS (
     COD_SEXO CHAR(1) PRIMARY KEY,
