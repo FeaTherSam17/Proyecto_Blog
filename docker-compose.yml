@@ -37,6 +37,7 @@ services:
       DB_NAME: proyecto_blog
       PORT: 3002
       SESSION_SECRET: super_secreto_blog
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
       CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3002:3002"
@@ -54,6 +55,7 @@ services:
       - backend
     environment:
       VITE_PROXY_TARGET: "http://backend:3002"
+      VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-}
       CHOKIDAR_USEPOLLING: "true"
     ports:
       - "5174:5174"

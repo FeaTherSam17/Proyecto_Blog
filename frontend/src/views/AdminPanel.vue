@@ -18,6 +18,7 @@
         </aside>
 
         <main class="sidebar-box">
+          <BotonRegresar class="mb-3" label="VOLVER AL SITIO" />
           <div class="mb-4 panel-header">
             <h2 class="section-title panel-title">{{ seccionPanel === 'publicaciones' ? 'BUSQUEDA DE PUBLICACIONES' : 'BUSQUEDA DE AUTORES' }}</h2>
             <p class="text-secondary panel-subtitle">{{ seccionPanel === 'publicaciones' ? 'Filtra publicaciones por autor, fecha o estatus.' : 'Encuentra autores por nombre o correo.' }}</p>
@@ -147,6 +148,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { api, formatearFecha } from '../services/api.js'
+import BotonRegresar from '../components/BotonRegresar.vue'
 
 const router = useRouter()
 const seccionPanel = ref('publicaciones')

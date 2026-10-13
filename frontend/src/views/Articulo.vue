@@ -7,9 +7,7 @@
     </nav>
 
     <main class="container py-5" style="max-width: 800px;">
-      <RouterLink to="/inicio" class="category-tag mb-5" style="display: inline-block; text-decoration: none; font-size: 0.8rem;">
-        &larr; VOLVER AL LISTADO
-      </RouterLink>
+      <BotonRegresar class="mb-5" label="VOLVER AL LISTADO" />
 
       <header class="mb-5" v-if="publicacionActual">
         <div class="category-tag mb-3" style="font-size: 0.85rem;">{{ publicacionActual.nombre_categoria }}</div>
@@ -44,6 +42,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { api, formatearFecha } from '../services/api.js'
+import BotonRegresar from '../components/BotonRegresar.vue'
 
 const route = useRoute()
 const publicacionActual = ref(null)

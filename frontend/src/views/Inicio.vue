@@ -1,4 +1,13 @@
 <template>
+  <div v-if="proteccionCargando" class="blog-access-state" aria-live="polite">
+    <p class="serif">Verificando el acceso…</p>
+    <div ref="turnstileContainer" class="turnstile-container"></div>
+  </div>
+  <div v-else-if="errorAcceso" class="blog-access-state" role="alert">
+    <p class="text-danger">{{ errorAcceso }}</p>
+    <button class="btn-editorial" type="button" @click="iniciarAccesoBlog">REINTENTAR</button>
+  </div>
+  <template v-else>
   <nav class="navbar sticky-top">
     <div class="container d-flex align-items-center justify-content-between">
       <RouterLink class="navbar-brand" to="/inicio">PROYECTO_BLOG</RouterLink>
@@ -104,6 +113,7 @@
       </aside>
     </div>
   </main>
+  </template>
 </template>
 
 <script setup>
@@ -115,6 +125,13 @@ const publicaciones = ref([])
 const categorias = ref([])
 const categoriaSeleccionada = ref(null)
 const usuarioActual = ref(null)
+const proteccionCargando = ref(true)
+const errorAcceso = ref('')
+const turnstileContainer = ref(null)
+const turnstileToken = ref('')
+const turnstileActivo = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY)
+let turnstileWidgetId = null
+let turnstileScript = null
 
 const paginaActual = ref(1)
 const itemsPorPagina = 20
@@ -134,7 +151,60 @@ watch(publicaciones, () => {
   paginaActual.value = 1
 })
 
-onMounted(async () => {
+async function cargarScriptTurnstile() {
+  if (window.turnstile) return
+  if (turnstileScript) return turnstileScript
+
+  turnstileScript = new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+    script.async = true
+    script.defer = true
+    script.onload = resolve
+    script.onerror = () => reject(new Error('No se pudo cargar la protección anti-bot'))
+    document.head.appendChild(script)
+  })
+  return turnstileScript
+}
+
+async function obtenerTokenTurnstile() {
+  await cargarScriptTurnstile()
+  if (turnstileWidgetId === null) {
+    turnstileWidgetId = window.turnstile.render(turnstileContainer.value, {
+      sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+      size: 'invisible',
+      execution: 'execute',
+      appearance: 'interaction-only',
+      callback: token => { turnstileToken.value = token },
+      'expired-callback': () => { turnstileToken.value = '' },
+      'error-callback': () => { turnstileToken.value = '' }
+    })
+  }
+
+  turnstileToken.value = ''
+  window.turnstile.execute(turnstileWidgetId)
+  for (let intento = 0; intento < 50; intento += 1) {
+    if (turnstileToken.value) return turnstileToken.value
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+  throw new Error('La validación anti-bot no terminó')
+}
+
+async function iniciarAccesoBlog() {
+  proteccionCargando.value = true
+  errorAcceso.value = ''
+  try {
+    const token = turnstileActivo ? await obtenerTokenTurnstile() : ''
+    await api.post('/api/blog/access', { token })
+    await cargarContenido()
+  } catch (error) {
+    console.error('Error al validar acceso al blog', error)
+    errorAcceso.value = error.data?.error || 'No se pudo abrir el blog. Intenta de nuevo.'
+    proteccionCargando.value = false
+  }
+}
+
+async function cargarContenido() {
   try {
     publicaciones.value = await api.get('/api/blog/posts')
   } catch (e) {
@@ -151,7 +221,10 @@ onMounted(async () => {
   } catch {
     // No autenticado, está bien
   }
-})
+  proteccionCargando.value = false
+}
+
+onMounted(iniciarAccesoBlog)
 
 function seleccionarCategoria(cat) {
   if (categoriaSeleccionada.value?.id_categoria === cat.id_categoria) {
@@ -161,3 +234,25 @@ function seleccionarCategoria(cat) {
   }
 }
 </script>
+
+<style scoped>
+.blog-access-state {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--cream-bg);
+  text-align: center;
+}
+
+.turnstile-container {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+</style>

@@ -91,7 +91,7 @@
             {{ cargando ? 'CARGANDO...' : 'ENTRAR' }}
           </button>
           <div class="text-center mt-4">
-            <RouterLink to="/inicio" class="category-tag" style="text-decoration: none; font-size: 0.75rem;">&larr; VOLVER AL SITIO</RouterLink>
+            <BotonRegresar label="VOLVER AL SITIO" />
           </div>
           <div class="text-center mt-4">
             <RouterLink to="/registro" class="category-tag" style="text-decoration: none; font-size: 0.75rem;">
@@ -108,6 +108,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { api } from '../services/api.js'
+import BotonRegresar from '../components/BotonRegresar.vue'
 
 const router = useRouter()
 const cargando = ref(false)

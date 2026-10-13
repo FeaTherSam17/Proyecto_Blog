@@ -5,7 +5,6 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const LOGIN_BLOCK_TIME_MS = 60 * 1000;
 const MAX_CAPTCHA_LENGTH = 4;
 const loginAttempts = new Map();
-
 function obtenerClaveRateLimit(req) {
     return req.ip || req.socket.remoteAddress || 'unknown';
 }

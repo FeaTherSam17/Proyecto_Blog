@@ -26,6 +26,7 @@
         </aside>
 
         <main class="sidebar-box">
+          <BotonRegresar class="mb-3" label="VOLVER AL SITIO" />
           <div class="d-flex align-items-center justify-content-between mb-4">
             <h5 class="section-title mb-0">
               {{ mostrarFormulario ? (editandoPublicacionId ? 'EDITAR ENTRADA' : 'NUEVA ENTRADA') : 'GESTIONAR CONTENIDO' }}
@@ -104,6 +105,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { api } from '../services/api.js'
+import BotonRegresar from '../components/BotonRegresar.vue'
 
 const router = useRouter()
 const usuarioActual = ref(null)

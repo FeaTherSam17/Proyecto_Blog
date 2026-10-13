@@ -72,7 +72,7 @@
           </button>
 
           <div class="text-center">
-            <RouterLink to="/login" class="category-tag" style="text-decoration: none; font-size: 0.75rem;">&larr; VOLVER AL ACCESO</RouterLink>
+            <BotonRegresar label="VOLVER AL ACCESO" fallback="/login" />
           </div>
         </form>
       </div>
@@ -84,6 +84,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { api } from '../services/api.js'
+import BotonRegresar from '../components/BotonRegresar.vue'
 
 const router = useRouter()
 const cargando = ref(false)
