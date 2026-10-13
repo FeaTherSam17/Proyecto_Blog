@@ -6,6 +6,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const detectarBotPasivamente = require('./middleware/botDetection');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -24,6 +25,10 @@ app.use(session({
 // Middlewares para procesar JSON y datos de formularios
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Detección pasiva para toda la API. Sólo genera señales de análisis; no bloquea
+// peticiones ni registra cuerpos, contraseñas o contenido de formularios.
+app.use('/api', detectarBotPasivamente);
 
 // El frontend Vue corre en Vite (puerto 5173 en dev).
 // En producción, servir el build de Vite desde frontend/dist.

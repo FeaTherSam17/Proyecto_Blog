@@ -121,6 +121,7 @@ AUTORES_ID_AUTOR_FK FOREIGN KEY (ID_AUTOR) REFERENCES USUARIOS(ID_USUARIO);
 -- intentos exitosos/fallidos, motivo, duración, hora, IP y navegador.
 -- COMPORTAMIENTO contiene los contadores y tiempos enviados por Vue.
 -- CLASIFICACION_COMPORTAMIENTO conserva la señal orientativa del backend.
+-- El objeto bot_detection agrega señales pasivas de todas las peticiones a /api.
 CREATE TABLE METRICAS_ACCESO (
     ID_EVENTO BIGSERIAL PRIMARY KEY,
     ID_USUARIO INTEGER,

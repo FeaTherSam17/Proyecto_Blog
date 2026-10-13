@@ -89,8 +89,13 @@ async function registrarMetricaAcceso(req, datos, inicio = Date.now()) {
             direccion_ip: req.ip || req.socket.remoteAddress || null,
             agente_usuario: req.get('user-agent') || null,
             duracion_ms: Math.max(0, Date.now() - inicio),
-            comportamiento: datos.comportamiento || null,
-            clasificacion_comportamiento: datos.clasificacion_comportamiento || null
+            comportamiento: {
+                ...(datos.comportamiento || {}),
+                bot_detection: req.botAssessment || null
+            },
+            clasificacion_comportamiento: datos.clasificacion_comportamiento
+                || req.botAssessment?.level
+                || 'INDETERMINADO'
         });
     } catch (error) {
         // Un fallo de métricas no debe impedir el acceso, pero sí debe quedar visible.
@@ -216,9 +221,17 @@ const login = async (req, res) => {
         // Se analiza el comportamiento antes de validar credenciales para conservar
         // evidencia de todos los intentos, incluso los que terminan en error.
         const analisisComportamiento = analizarComportamiento(comportamiento);
+        const nivelCliente = analisisComportamiento.clasificacion;
+        const nivelServidor = req.botAssessment?.level;
+        const clasificacionComportamiento = nivelServidor === 'ALTO'
+            || nivelCliente === 'SOSPECHOSO'
+            ? 'SOSPECHOSO'
+            : nivelServidor === 'MEDIO'
+                ? 'INDETERMINADO'
+                : nivelCliente;
         const datosComportamiento = {
             comportamiento: analisisComportamiento.datos,
-            clasificacion_comportamiento: analisisComportamiento.clasificacion
+            clasificacion_comportamiento: clasificacionComportamiento
         };
 
         if (!email || !contrasena) {
