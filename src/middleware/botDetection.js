@@ -40,19 +40,28 @@ function detectarBotPasivamente(req, res, next) {
     const senales = [];
     const userAgent = req.get('user-agent') || '';
     const userAgentNormalizado = userAgent.toLowerCase();
+    const acceptLanguage = req.get('accept-language');
+    const referer = req.get('referer') || req.get('referrer') || '';
 
-    // Estas cabeceras sólo son señales: pueden faltar en clientes legítimos.
+    // 1. Inspección de User-Agent: firmas sospechosas de automatización (HeadlessChrome, Selenium, Playwright, etc.)
     if (!userAgent) {
-        puntaje += 15;
+        puntaje += 25;
         senales.push('USER_AGENT_AUSENTE');
-    }
-    if (/(headless|phantom|selenium|webdriver|playwright|puppeteer|bot)/i.test(userAgentNormalizado)) {
-        puntaje += 45;
+    } else if (/(headlesschrome|headless|phantom|selenium|webdriver|playwright|puppeteer|bot|crawl|spider)/i.test(userAgentNormalizado)) {
+        puntaje += 50;
         senales.push('USER_AGENT_AUTOMATIZADO');
     }
-    if (req.get('accept-language') === undefined) {
-        puntaje += 10;
+
+    // 2. Inspección de Accept-Language: cabecera omitida habitualmente por scripts de scraping/bots
+    if (acceptLanguage === undefined || acceptLanguage === '') {
+        puntaje += 15;
         senales.push('IDIOMA_AUSENTE');
+    }
+
+    // 3. Inspección de Referer: scripts directos o Selenium navegando APIs suelen omitir Referer
+    if (!referer && ['POST', 'PUT', 'DELETE'].includes(req.method)) {
+        puntaje += 20;
+        senales.push('REFERER_AUSENTE');
     }
 
     const peticionesRecientes = anterior.peticiones.length;

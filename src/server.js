@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const morgan = require('morgan');
 const path = require('path');
 require('dotenv').config();
 
@@ -7,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const detectarBotPasivamente = require('./middleware/botDetection');
+const { apiRateLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -26,9 +28,20 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Detección pasiva para toda la API. Sólo genera señales de análisis; no bloquea
-// peticiones ni registra cuerpos, contraseñas o contenido de formularios.
+// Auditoría y registro de tráfico con Morgan
+morgan.token('client-ip', (req) => req.ip || req.socket?.remoteAddress || '-');
+morgan.token('session-id', (req) => req.sessionID ? req.sessionID.slice(0, 10) + '...' : '-');
+morgan.token('bot-info', (req) => {
+    if (!req.botAssessment) return 'bot:N/A';
+    return `bot:${req.botAssessment.level}[${req.botAssessment.score}]`;
+});
+app.use(morgan(':client-ip [:session-id] :method :url :status :res[content-length] - :response-time ms | :bot-info | ":user-agent"'));
+
+// Detección pasiva para toda la API. Inspecciona cabeceras (User-Agent, Accept-Language, Referer) y cadencia.
 app.use('/api', detectarBotPasivamente);
+
+// Control de tráfico y Rate Limiting para toda la API (estrategia combinada IP + express-session)
+app.use('/api', apiRateLimiter);
 
 // El frontend Vue corre en Vite (puerto 5173 en dev).
 // En producción, servir el build de Vite desde frontend/dist.

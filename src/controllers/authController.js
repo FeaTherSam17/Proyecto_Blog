@@ -6,7 +6,10 @@ const LOGIN_BLOCK_TIME_MS = 60 * 1000;
 const MAX_CAPTCHA_LENGTH = 4;
 const loginAttempts = new Map();
 function obtenerClaveRateLimit(req) {
-    return req.ip || req.socket.remoteAddress || 'unknown';
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    const tieneCookieSesion = Boolean(req.headers?.cookie && req.headers.cookie.includes('connect.sid'));
+    const sessionId = (tieneCookieSesion && req.sessionID) ? req.sessionID : 'ip-global';
+    return `${ip}::${sessionId}`;
 }
 
 function obtenerEstadoRateLimit(req) {
@@ -59,20 +62,24 @@ function analizarComportamiento(comportamiento) {
         : [];
     const datos = {
         mousemove_count: limitarEntero(comportamiento.mousemove_count, 100000),
+        keydown_count: limitarEntero(comportamiento.keydown_count, 1000),
         keyup_count: limitarEntero(comportamiento.keyup_count, 1000),
         keyup_intervals_ms: intervalos,
         focus_submit_ms: limitarMilisegundos(comportamiento.focus_submit_ms),
-        send_keys_detected: comportamiento.send_keys_detected === true
+        send_keys_detected: comportamiento.send_keys_detected === true,
+        navigator_webdriver: Boolean(comportamiento.navigator_webdriver || comportamiento.webdriver)
     };
 
-    // La clasificación es una señal orientativa; no sustituye contraseña ni CAPTCHA
-    // y actualmente no bloquea por sí sola al usuario.
+    // La clasificación evalúa la interacción física y la huella de automatización.
     const sinMovimiento = datos.mousemove_count === 0;
-    const sinTeclas = datos.keyup_count === 0;
+    const sinTeclas = datos.keyup_count === 0 && datos.keydown_count === 0;
     const sinTiempoHumano = datos.focus_submit_ms === 0;
-    const clasificacion = sinMovimiento && sinTeclas && sinTiempoHumano
+    const webdriverActivo = datos.navigator_webdriver === true;
+
+    // Si se detecta navigator.webdriver activo o ausencia total de interacción orgánica:
+    const clasificacion = (webdriverActivo || (sinMovimiento && sinTeclas && sinTiempoHumano))
         ? 'SOSPECHOSO'
-        : datos.keyup_count > 0 || datos.mousemove_count > 0
+        : (datos.keyup_count > 0 || datos.keydown_count > 0 || datos.mousemove_count > 0)
             ? 'HUMANO'
             : 'INDETERMINADO';
 

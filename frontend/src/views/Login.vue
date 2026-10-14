@@ -22,6 +22,7 @@
           @submit.prevent="hacerLogin"
           @mousemove="registrarMovimiento"
           @focusin="registrarFocus"
+          @keydown="registrarKeydown"
           @keyup="registrarKeyup"
         >
           <div class="mb-3">
@@ -116,9 +117,9 @@ const errorMsg = ref('')
 const captchaPregunta = ref('')
 const loginData = ref({ email: '', contrasena: '', captchaRespuesta: '' })
 
-// Ofuscación ligera del DOM: se generan identificadores distintos por carga para
-// evitar que un automatizador dependa de ids/names predecibles. Las etiquetas
-// mantienen sus referencias dinámicas para conservar la accesibilidad.
+// Ofuscación dinámica del DOM: variables reactivas que alteran los identificadores
+// durante el ciclo de vida (onMounted) para romper la automatización de scripts de Selenium
+// que dependen de localizadores fijos (By.ID, By.CSS_SELECTOR, By.XPATH).
 function generarToken() {
   const bytes = new Uint32Array(2)
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
@@ -128,23 +129,28 @@ function generarToken() {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`
 }
 
-const tokenDom = generarToken()
-const domTokens = {
-  form: `f-${tokenDom}`,
-  emailId: `i-${tokenDom}-a`,
-  emailName: `n-${tokenDom}-a`,
-  passwordId: `i-${tokenDom}-b`,
-  passwordName: `n-${tokenDom}-b`,
-  captchaId: `i-${tokenDom}-c`,
-  captchaName: `n-${tokenDom}-c`,
-  refreshId: `b-${tokenDom}-r`,
-  submitId: `b-${tokenDom}-s`
+function crearTokensDom() {
+  const token = generarToken()
+  return {
+    form: `f-${token}`,
+    emailId: `i-${token}-a`,
+    emailName: `n-${token}-a`,
+    passwordId: `i-${token}-b`,
+    passwordName: `n-${token}-b`,
+    captchaId: `i-${token}-c`,
+    captchaName: `n-${token}-c`,
+    refreshId: `b-${token}-r`,
+    submitId: `b-${token}-s`
+  }
 }
+
+const domTokens = ref(crearTokensDom())
 
 // Estado temporal de la interacción durante un intento de login.
 let inicioFocus = null
 let ultimoKeyup = null
 let movimientos = 0
+let conteoKeydown = 0
 const intervalosKeyup = []
 
 // performance.now() permite medir intervalos con mayor precisión en el navegador.
@@ -164,6 +170,10 @@ function registrarFocus() {
   }
 }
 
+function registrarKeydown() {
+  conteoKeydown += 1
+}
+
 function registrarKeyup() {
   const momento = ahora()
   // Se guardan tiempos entre teclas, nunca las teclas presionadas.
@@ -173,16 +183,32 @@ function registrarKeyup() {
   ultimoKeyup = momento
 }
 
+/**
+ * Evaluación de huella del navegador:
+ * Detección de la propiedad navigator.webdriver activada por controladores de automatización (Selenium).
+ */
+function evaluarHuellaNavegador() {
+  const nav = typeof window !== 'undefined' ? window.navigator : null
+  const webdriverDetectado = Boolean(
+    nav?.webdriver === true ||
+    (nav && 'webdriver' in nav && nav.webdriver) ||
+    document.documentElement?.getAttribute('webdriver')
+  )
+  return webdriverDetectado
+}
+
 function obtenerComportamiento() {
   const momentoActual = ahora()
+  const webdriverDetectado = evaluarHuellaNavegador()
   // Se prepara el resumen que viajará dentro del JSON del login.
   return {
     mousemove_count: movimientos,
+    keydown_count: conteoKeydown,
     keyup_count: ultimoKeyup === null ? 0 : intervalosKeyup.length + 1,
     keyup_intervals_ms: [...intervalosKeyup],
     focus_submit_ms: inicioFocus === null ? 0 : Math.round(momentoActual - inicioFocus),
-    // Es un indicador de interacción de teclado; no contiene las teclas presionadas.
-    send_keys_detected: ultimoKeyup !== null
+    send_keys_detected: ultimoKeyup !== null || conteoKeydown > 0,
+    navigator_webdriver: webdriverDetectado
   }
 }
 
@@ -190,6 +216,7 @@ function reiniciarComportamiento() {
   inicioFocus = null
   ultimoKeyup = null
   movimientos = 0
+  conteoKeydown = 0
   intervalosKeyup.length = 0
 }
 
@@ -238,7 +265,10 @@ async function hacerLogin() {
   }
 }
 
-onMounted(cargarCaptcha)
+onMounted(() => {
+  domTokens.value = crearTokensDom()
+  cargarCaptcha()
+})
 </script>
 
 <style scoped>
