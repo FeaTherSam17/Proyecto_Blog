@@ -165,6 +165,15 @@ Estrategia de defensa en profundidad que complementa el análisis de tráfico en
      * `COMPORTAMIENTO` (`JSONB`): Métricas de interacción (`mousemove_count`, `keydown_count`, `keyup_count`, `keyup_intervals_ms`, `focus_submit_ms`, `navigator_webdriver`).
      * `CLASIFICACION_COMPORTAMIENTO`: `HUMANO`, `SOSPECHOSO` o `INDETERMINADO`.
 
+5. **Persistencia Continua en Archivo Físico (`logs/acceso.log`):**
+   * Todas las peticiones HTTP y eventos de seguridad se escriben en el archivo `logs/acceso.log` utilizando un stream de escritura asíncrono (`src/utils/logger.js`).
+   * Permite análisis forense externo, rotación de logs e inspección sin depender de la base de datos.
+
+6. **Visualización y Auditoría en el Panel de Administración:**
+   * La interfaz de administrador ([AdminPanel.vue](file:///frontend/src/views/AdminPanel.vue)) incluye la sección **"AUDITORÍA Y LOGS"** con dos modos:
+     * **Métricas y Eventos (BD):** Dashboard interactivo con tarjetas de estadísticas (Total, Sospechosos, Rate Limit 429, Exitosos), filtros por evento/motivo/clasificación/búsqueda, y modal para inspeccionar el payload de interacción física de cada usuario.
+     * **Archivo de Logs en Vivo:** Visor terminal integrado para leer las últimas líneas de `logs/acceso.log` y botón para descargar el archivo físico completo.
+
 ---
 
 ## Estructura de la Tabla `METRICAS_ACCESO` (SQL)

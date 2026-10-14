@@ -35,4 +35,9 @@ router.post('/autores', requerirAdmin, adminController.crearAutor);
 router.put('/autores/:id', requerirAdmin, adminController.actualizarAutor);
 router.delete('/autores/:id', requerirAdmin, adminController.eliminarAutor);
 
+// Rutas de Auditoría y Logs (SOLO para ADMIN)
+router.get('/logs', requerirAdmin, adminController.obtenerLogsAuditoria);
+router.get('/logs/archivo', requerirAdmin, adminController.obtenerLogsArchivo);
+router.get('/logs/archivo/descargar', requerirAdmin, adminController.descargarLogsArchivo);
+
 module.exports = router;

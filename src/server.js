@@ -28,7 +28,9 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Auditoría y registro de tráfico con Morgan
+const { accessLogStream } = require('./utils/logger');
+
+// Auditoría y registro de tráfico con Morgan en consola
 morgan.token('client-ip', (req) => req.ip || req.socket?.remoteAddress || '-');
 morgan.token('session-id', (req) => req.sessionID ? req.sessionID.slice(0, 10) + '...' : '-');
 morgan.token('bot-info', (req) => {
@@ -36,6 +38,11 @@ morgan.token('bot-info', (req) => {
     return `bot:${req.botAssessment.level}[${req.botAssessment.score}]`;
 });
 app.use(morgan(':client-ip [:session-id] :method :url :status :res[content-length] - :response-time ms | :bot-info | ":user-agent"'));
+
+// Registro persistente y continuo en archivo de logs (logs/acceso.log)
+app.use(morgan('[:date[iso]] :client-ip [:session-id] :method :url :status :res[content-length] - :response-time ms | :bot-info | ":user-agent"', {
+    stream: accessLogStream
+}));
 
 // Detección pasiva para toda la API. Inspecciona cabeceras (User-Agent, Accept-Language, Referer) y cadencia.
 app.use('/api', detectarBotPasivamente);
