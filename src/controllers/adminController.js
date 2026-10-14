@@ -345,6 +345,40 @@ const descargarLogsArchivo = (req, res) => {
     }
 };
 
+/**
+ * Cambiar estatus de una publicación (ADMIN)
+ */
+const cambiarEstatusPublicacion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estatus } = req.body;
+
+        if (!id) {
+            return res.status(400).json({ error: 'ID de publicación requerido' });
+        }
+
+        const estadosValidos = ['ACTIVO', 'INACTIVO', 'PENDIENTE_VERIFICACION', 'SUSPENDIDO', 'ELIMINADO'];
+        if (!estatus || !estadosValidos.includes(estatus)) {
+            return res.status(400).json({
+                error: `Estatus no válido. Opciones permitidas: ${estadosValidos.join(', ')}`
+            });
+        }
+
+        const resultado = await articuloModel.cambiarEstadoPublicacion(id, estatus);
+        if (!resultado) {
+            return res.status(404).json({ error: 'Publicación no encontrada' });
+        }
+
+        res.json({
+            mensaje: 'Estatus de la publicación actualizado correctamente',
+            publicacion: resultado
+        });
+    } catch (error) {
+        console.error('Error al cambiar estatus de la publicación:', error);
+        res.status(500).json({ error: 'Error interno del servidor al actualizar estatus' });
+    }
+};
+
 module.exports = {
     panelAdmin,
     crearPublicacion,
@@ -357,5 +391,6 @@ module.exports = {
     eliminarAutor,
     obtenerLogsAuditoria,
     obtenerLogsArchivo,
-    descargarLogsArchivo
+    descargarLogsArchivo,
+    cambiarEstatusPublicacion
 };

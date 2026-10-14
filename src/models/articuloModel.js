@@ -224,6 +224,18 @@ const obtenerCategorias = async () => {
     return result.rows;
 };
 
+// Cambiar el estatus de una publicación (función administrativa de ADMIN)
+const cambiarEstadoPublicacion = async (id_publicacion, nuevoEstado) => {
+    const query = `
+        UPDATE PUBLICACIONES
+        SET ESTADO_PUBLICACION = $1
+        WHERE ID_PUBLICACION = $2
+        RETURNING ID_PUBLICACION, ESTADO_PUBLICACION, TITULO
+    `;
+    const result = await pool.query(query, [nuevoEstado, id_publicacion]);
+    return result.rows[0];
+};
+
 module.exports = {
     obtenerPublicacionesActivas,
     obtenerPublicacionPorId,
@@ -233,5 +245,6 @@ module.exports = {
     crearPublicacion,
     eliminarPublicacion,
     actualizarPublicacion,
-    obtenerCategorias
+    obtenerCategorias,
+    cambiarEstadoPublicacion
 };

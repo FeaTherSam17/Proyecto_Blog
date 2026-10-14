@@ -58,12 +58,45 @@
             </div>
             <div class="result-list">
               <div class="result-item" v-for="pub in publicacionesFiltradasPanel" :key="pub.id">
-                <p class="category-tag result-meta">{{ pub.estatus }} - {{ formatearFecha(pub.fecha) }}</p>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                  <p class="category-tag result-meta mb-0">{{ formatearFecha(pub.fecha) }}</p>
+                  <span
+                    class="badge"
+                    :class="{
+                      'badge-success': pub.estatus === 'ACTIVO',
+                      'badge-warning': pub.estatus === 'PENDIENTE_VERIFICACION',
+                      'badge-danger': pub.estatus === 'SUSPENDIDO' || pub.estatus === 'ELIMINADO'
+                    }"
+                  >
+                    {{ pub.estatus }}
+                  </span>
+                </div>
                 <h3 class="result-title">{{ pub.titulo }}</h3>
                 <p class="text-secondary result-author">AUTOR: {{ pub.autor }}</p>
-                <p class="text-secondary result-author" style="font-size:0.75rem; margin-top:2px;">
+                <p class="text-secondary result-author" style="font-size:0.75rem; margin-top:2px; margin-bottom: 0.75rem;">
                   Total posts del autor: {{ pub.totalPostsAutor }}
                 </p>
+
+                <!-- ADMINISTRACIÓN DEL ESTATUS DE LA PUBLICACIÓN -->
+                <div class="author-item-footer" style="border-top: 1px solid var(--border-soft); padding-top: 0.6rem;">
+                  <span class="category-tag mb-0" style="font-size: 0.68rem; font-weight: 700;">ADMINISTRAR ESTATUS:</span>
+                  <div class="d-flex align-items-center gap-2">
+                    <select
+                      class="form-control"
+                      style="width: auto; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer;"
+                      :value="pub.estatus"
+                      @change="cambiarEstatusPublicacionPanel(pub, $event.target.value)"
+                      :disabled="actualizandoEstatusId === pub.id"
+                    >
+                      <option value="ACTIVO">ACTIVO</option>
+                      <option value="INACTIVO">INACTIVO</option>
+                      <option value="PENDIENTE_VERIFICACION">PENDIENTE_VERIFICACION</option>
+                      <option value="SUSPENDIDO">SUSPENDIDO</option>
+                      <option value="ELIMINADO">ELIMINADO</option>
+                    </select>
+                    <span v-if="actualizandoEstatusId === pub.id" class="text-secondary" style="font-size: 0.7rem;">Guardando...</span>
+                  </div>
+                </div>
               </div>
               <div class="pagination-container text-center mt-5 mb-4" v-if="totalPaginasPublicaciones > 1">
                 <button type="button" class="pagination-number pagination-nav" :disabled="paginaPublicacionesActual === 0" @click="retrocederPaginaPublicaciones">Anterior</button>
@@ -492,6 +525,34 @@ async function cargarPublicacionesPanel(pagina = 0) {
   } catch (e) { if (e.status === 401) router.push('/login') }
 }
 
+const actualizandoEstatusId = ref(null)
+
+async function cambiarEstatusPublicacionPanel(pub, nuevoEstatus) {
+  if (!pub || pub.estatus === nuevoEstatus) return
+
+  if (nuevoEstatus === 'ELIMINADO') {
+    if (!confirm(`¿Estás seguro de marcar la publicación "${pub.titulo}" como ELIMINADA?`)) {
+      return
+    }
+  }
+
+  const estatusAnterior = pub.estatus
+  pub.estatus = nuevoEstatus
+  actualizandoEstatusId.value = pub.id
+
+  try {
+    await api.put(`/api/admin/publicaciones/${pub.id}/estatus`, {
+      estatus: nuevoEstatus
+    })
+  } catch (err) {
+    console.error('Error al actualizar estatus de publicación:', err)
+    pub.estatus = estatusAnterior
+    alert(err.data?.error || 'No fue posible actualizar el estatus de la publicación')
+  } finally {
+    actualizandoEstatusId.value = null
+  }
+}
+
 async function cargarAutoresPanel(pagina = 0) {
   paginaAutoresActual.value = pagina
   const limitStr = 10
@@ -700,6 +761,12 @@ async function cerrarSesion() {
   background: #dcfce7;
   color: #166534;
   border: 1px solid #4ade80;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
 }
 
 .terminal-container {

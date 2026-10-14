@@ -35,6 +35,10 @@ router.post('/autores', requerirAdmin, adminController.crearAutor);
 router.put('/autores/:id', requerirAdmin, adminController.actualizarAutor);
 router.delete('/autores/:id', requerirAdmin, adminController.eliminarAutor);
 
+// Administración de Estatus de Publicaciones (SOLO para ADMIN)
+router.put('/publicaciones/:id/estatus', requerirAdmin, adminController.cambiarEstatusPublicacion);
+router.patch('/publicaciones/:id/estatus', requerirAdmin, adminController.cambiarEstatusPublicacion);
+
 // Rutas de Auditoría y Logs (SOLO para ADMIN)
 router.get('/logs', requerirAdmin, adminController.obtenerLogsAuditoria);
 router.get('/logs/archivo', requerirAdmin, adminController.obtenerLogsArchivo);
