@@ -1,14 +1,20 @@
 const usuarioModel = require('../models/usuarioModel');
 const crypto = require('crypto');
 
+// Configuración de límites de intentos de login y CAPTCHA
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOGIN_BLOCK_TIME_MS = 60 * 1000;
+
 const MAX_CAPTCHA_LENGTH = 4;
+// Mapa para almacenar los intentos de login por IP
 const loginAttempts = new Map();
+
+//Funcion para obtener la clave de rate limit basada en la IP del cliente
 function obtenerClaveRateLimit(req) {
     return req.ip || req.socket.remoteAddress || 'unknown';
 }
 
+//Funcion para obtener el estado de rate limit para la IP del cliente
 function obtenerEstadoRateLimit(req) {
     const key = obtenerClaveRateLimit(req);
     const estado = loginAttempts.get(key);
