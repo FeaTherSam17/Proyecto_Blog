@@ -117,10 +117,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api, formatearFecha } from '../services/api.js'
-import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 
 const publicaciones = ref([])
 const categorias = ref([])
