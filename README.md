@@ -86,6 +86,7 @@ Generación de un desafío aritmético aleatorio almacenado exclusivamente en el
    * El endpoint `GET /api/auth/captcha` responde **únicamente** con la pregunta textual (ej. `{"pregunta": "8 * 3"}`), nunca con la respuesta.
 2. **Evaluación exclusiva en Backend:**
    * Al recibir `POST /api/auth/login`, el servidor compara la respuesta del cliente contra `req.session.captcha.respuesta`.
+   * Si el comportamiento se clasifica como **`SOSPECHOSO`**, el backend responde **`HTTP 403 Forbidden`**, invalida el CAPTCHA y no crea la sesión de usuario.
    * Si la respuesta es incorrecta o el formato no es numérico, responde **`HTTP 400 Bad Request`** (`"El resultado del captcha es incorrecto"`).
    * **Invalidez inmediata:** Tras evaluarse, se destruye de la sesión (`delete req.session.captcha`) para impedir ataques de repetición o reutilización.
 3. **El cliente Vue 3 no tiene lógica de solución:**
@@ -226,6 +227,6 @@ Content-Type: application/json
 ### Simulación de Selenium / HeadlessChrome
 Cuando una petición incluye la cabecera `User-Agent: Mozilla/5.0 HeadlessChrome/...` o el frontend reporta `navigator_webdriver: true`, el log de Morgan mostrará:
 ```text
-::1 [s7d2jK1...] POST /api/auth/login 400 - 14.2 ms | bot:ALTO | "Mozilla/5.0 HeadlessChrome/120.0"
+::1 [s7d2jK1...] POST /api/auth/login 403 - 14.2 ms | bot:ALTO | "Mozilla/5.0 HeadlessChrome/120.0"
 ```
-Y en la tabla `METRICAS_ACCESO`, el intento quedará registrado con `CLASIFICACION_COMPORTAMIENTO = 'SOSPECHOSO'`.
+El cliente recibirá `Acceso bloqueado por actividad sospechosa`; además, el intento quedará registrado en `METRICAS_ACCESO` con `MOTIVO = 'BOT_DETECTADO'` y `CLASIFICACION_COMPORTAMIENTO = 'SOSPECHOSO'`.

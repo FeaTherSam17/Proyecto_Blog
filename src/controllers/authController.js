@@ -240,6 +240,20 @@ const login = async (req, res) => {
             clasificacion_comportamiento: clasificacionComportamiento
         };
 
+        if (clasificacionComportamiento === 'SOSPECHOSO') {
+            delete req.session.captcha;
+            registrarIntentoFallido(rateLimit.key);
+            await registrarMetricaAcceso(req, {
+                email_ingresado: email || null,
+                tipo_evento: 'LOGIN',
+                motivo: 'BOT_DETECTADO',
+                ...datosComportamiento
+            }, inicio);
+            return res.status(403).json({
+                error: 'Acceso bloqueado por actividad sospechosa'
+            });
+        }
+
         if (!email || !contrasena) {
             registrarIntentoFallido(rateLimit.key);
             await registrarMetricaAcceso(req, {
