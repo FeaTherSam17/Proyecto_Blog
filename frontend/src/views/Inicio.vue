@@ -183,7 +183,9 @@ async function obtenerTokenTurnstile() {
 
   turnstileToken.value = ''
   window.turnstile.execute(turnstileWidgetId)
-  for (let intento = 0; intento < 50; intento += 1) {
+  
+  // Aumentado a 100 intentos (10 segundos) para dar tiempo a redes lentas
+  for (let intento = 0; intento < 100; intento += 1) {
     if (turnstileToken.value) return turnstileToken.value
     await new Promise(resolve => setTimeout(resolve, 100))
   }
@@ -199,8 +201,14 @@ async function iniciarAccesoBlog() {
     await cargarContenido()
   } catch (error) {
     console.error('Error al validar acceso al blog', error)
-    errorAcceso.value = error.data?.error || 'No se pudo abrir el blog. Intenta de nuevo.'
+    errorAcceso.value = error.data?.error || error.message || 'No se pudo abrir el blog. Intenta de nuevo.'
     proteccionCargando.value = false
+    
+    // Limpieza de widget en caso de que la promesa de validación falle
+    if (turnstileWidgetId !== null && window.turnstile) {
+      window.turnstile.remove(turnstileWidgetId)
+      turnstileWidgetId = null
+    }
   }
 }
 
@@ -237,7 +245,7 @@ function seleccionarCategoria(cat) {
 onUnmounted(() => {
   if (turnstileWidgetId !== null && window.turnstile) {
     window.turnstile.remove(turnstileWidgetId)
-    turnstileWidgetId = null // Resetea la variable por seguridad
+    turnstileWidgetId = null
   }
 })
 </script>
@@ -254,12 +262,11 @@ onUnmounted(() => {
   text-align: center;
 }
 
+/* Se eliminó el opacity: 0 y pointer-events: none para no bloquear interacciones visuales */
 .turnstile-container {
-  position: fixed;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
+  min-height: 70px;
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
 }
 </style>
