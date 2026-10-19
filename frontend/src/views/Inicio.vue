@@ -120,6 +120,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api, formatearFecha } from '../services/api.js'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 
 const publicaciones = ref([])
 const categorias = ref([])
@@ -233,6 +234,13 @@ function seleccionarCategoria(cat) {
     categoriaSeleccionada.value = cat
   }
 }
+
+onUnmounted(() => {
+  if (turnstileWidgetId !== null && window.turnstile) {
+    window.turnstile.remove(turnstileWidgetId)
+    turnstileWidgetId = null // Resetea la variable por seguridad
+  }
+})
 </script>
 
 <style scoped>
