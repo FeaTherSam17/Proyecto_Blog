@@ -3,7 +3,7 @@ const BASE = import.meta.env.VITE_API_URL || '';  // En dev Vite proxy redirige 
 
 export const api = {
   async get(path) {
-    const res = await fetch(BASE + path)
+    const res = await fetch(BASE + path, { credentials: 'include' })
     if (!res.ok) throw { status: res.status, data: await res.json().catch(() => ({})) }
     return res.json()
   },
@@ -12,6 +12,7 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      credentials: 'include'
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw { status: res.status, data }
@@ -22,6 +23,7 @@ export const api = {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      credentials: 'include'
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw { status: res.status, data }
@@ -32,13 +34,17 @@ export const api = {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      credentials: 'include'
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw { status: res.status, data }
     return data
   },
   async delete(path) {
-    const res = await fetch(BASE + path, { method: 'DELETE' })
+    const res = await fetch(BASE + path, { 
+      method: 'DELETE',
+      credentials: 'include'
+    })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw { status: res.status, data }
     return data
