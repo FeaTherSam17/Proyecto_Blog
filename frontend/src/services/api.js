@@ -1,5 +1,5 @@
 // Servicio centralizado para las llamadas a la API del backend
-const BASE = ''  // En dev Vite proxy redirige /api → backend
+const BASE = import.meta.env.VITE_API_URL || '';  // En dev Vite proxy redirige /api → backend
 
 export const api = {
   async get(path) {
