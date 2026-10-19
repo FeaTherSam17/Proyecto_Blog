@@ -40,19 +40,4 @@ router.beforeEach(async (to) => {
   }
 })
 
-
-// Agrega esta línea justo antes de configurar la sesión para que Render permita las cookies seguras
-app.set('trust proxy', 1);
-
-// Configuración de Sesiones
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'super_secreto_blog',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: true, // Siempre true cuando cruzas dominios con HTTPS
-        sameSite: 'none', // <--- ESTO ES VITAL: Permite que la cookie viaje a otro dominio
-        maxAge: 1000 * 60 * 60 * 24 // 1 día
-    }
-}));
 export default router

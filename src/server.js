@@ -13,11 +13,11 @@ const { apiRateLimiter } = require('./middleware/rateLimiter');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware nativo para habilitar CORS
+// Middleware nativo para habilitar CORS blindado
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://proyecto-blog-0nqd.onrender.com');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
@@ -26,17 +26,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middlewares para procesar JSON y datos de formularios (Se eliminó el duplicado)
+// Middlewares para procesar JSON y datos de formularios
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuración de Sesiones
+// 1. VITAL: Permitir que Render acepte las cookies seguras de tu proxy
+app.set('trust proxy', 1);
+
+// 2. VITAL: Configuración de Sesiones con sameSite en 'none' para cruzar dominios
 app.use(session({
     secret: process.env.SESSION_SECRET || 'super_secreto_blog',
     resave: false,
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production', // true en producción
+        sameSite: 'none', // Permite que la sesión viaje a tu dominio de Vue
         maxAge: 1000 * 60 * 60 * 24 // 1 día
     }
 }));
@@ -60,15 +64,14 @@ app.use(morgan('[:date[iso]] :client-ip [:session-id] :method :url :status :res[
 app.use('/api', detectarBotPasivamente);
 app.use('/api', apiRateLimiter);
 
-// 1. PRIMERO SE DECLARAN LAS RUTAS DE LA API
+// 3. PRIMERO SE DECLARAN LAS RUTAS DE LA API
 app.use('/api/auth', authRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/admin', adminRoutes);
 
-// 2. DESPUÉS SE DECLARA EL CATCH-ALL DE PRODUCCIÓN
+// 4. DESPUÉS SE DECLARA EL CATCH-ALL DE PRODUCCIÓN PARA VUE
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../frontend/dist')));
-    // Al estar debajo de la API, esto solo atrapará rutas que no sean /api/lo-que-sea
     app.get('*', (req, res) => {
         res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
     });
