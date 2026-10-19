@@ -39,7 +39,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production', // true en producción
+        secure: true, // true en producción
         sameSite: 'none', // Permite que la sesión viaje a tu dominio de Vue
         maxAge: 1000 * 60 * 60 * 24 // 1 día
     }
