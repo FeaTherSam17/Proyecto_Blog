@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { api } from '../services/api.js' // <-- VITAL: Importar tu API configurada
+
 import Inicio from '../views/Inicio.vue'
 import Login from '../views/Login.vue'
 import Registro from '../views/Registro.vue'
@@ -25,11 +27,8 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   if (to.meta.requiresAuth) {
     try {
-      const res = await fetch('/api/auth/me')
-      if (!res.ok) {
-        return { name: 'Login' }
-      }
-      const data = await res.json()
+      // VITAL: Usar api.get para que envíe la URL correcta y la galleta
+      const data = await api.get('/api/auth/me')
       const rol = ((data.usuario || data.autor)?.rol || '').toUpperCase()
       if (to.meta.requiresAdmin && rol !== 'ADMIN') {
         return { name: 'Admin' }
