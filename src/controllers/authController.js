@@ -1,10 +1,15 @@
 const usuarioModel = require('../models/usuarioModel');
 const crypto = require('crypto');
 
+// Configuración de límites de intentos de login y CAPTCHA
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOGIN_BLOCK_TIME_MS = 60 * 1000;
+
 const MAX_CAPTCHA_LENGTH = 4;
+// Mapa para almacenar los intentos de login por IP
 const loginAttempts = new Map();
+
+//Funcion para obtener la clave de rate limit basada en la IP del cliente
 function obtenerClaveRateLimit(req) {
     const ip = req.ip || req.socket?.remoteAddress || 'unknown';
     const tieneCookieSesion = Boolean(req.headers?.cookie && req.headers.cookie.includes('connect.sid'));
@@ -12,6 +17,7 @@ function obtenerClaveRateLimit(req) {
     return `${ip}::${sessionId}`;
 }
 
+//Funcion para obtener el estado de rate limit para la IP del cliente
 function obtenerEstadoRateLimit(req) {
     const key = obtenerClaveRateLimit(req);
     const estado = loginAttempts.get(key);
@@ -239,6 +245,20 @@ const login = async (req, res) => {
             comportamiento: analisisComportamiento.datos,
             clasificacion_comportamiento: clasificacionComportamiento
         };
+
+        if (clasificacionComportamiento === 'SOSPECHOSO') {
+            delete req.session.captcha;
+            registrarIntentoFallido(rateLimit.key);
+            await registrarMetricaAcceso(req, {
+                email_ingresado: email || null,
+                tipo_evento: 'LOGIN',
+                motivo: 'BOT_DETECTADO',
+                ...datosComportamiento
+            }, inicio);
+            return res.status(403).json({
+                error: 'Acceso bloqueado por actividad sospechosa'
+            });
+        }
 
         if (!email || !contrasena) {
             registrarIntentoFallido(rateLimit.key);

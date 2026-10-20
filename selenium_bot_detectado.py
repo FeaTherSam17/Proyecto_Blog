@@ -4,7 +4,7 @@ selenium_bot_detectado.py
 =============================================================================
 Demuestra cómo el servidor PROYECTO_BLOG detecta y bloquea a Selenium.
 
-El script ejecuta TRES intentos consecutivos sobre http://localhost:5174/login:
+El script ejecuta TRES intentos consecutivos sobre http://10.228.6.137:5174/login:
 
   Intento 1 — CAPTCHA vacío + navigator.webdriver expuesto
       → El frontend reporta navigator.webdriver = True
@@ -57,8 +57,8 @@ logging.basicConfig(
 )
 LOG = logging.getLogger("BOT")
 
-FRONTEND = "http://localhost:5174"
-BACKEND  = "http://localhost:3000"
+FRONTEND = "http://10.228.6.137:5174"
+BACKEND  = "http://10.228.6.137:3002"
 LOGIN_URL = f"{FRONTEND}/login"
 
 EMAIL    = "erikaadmin@gmail.com"   # cambia por un email real registrado
@@ -218,8 +218,8 @@ def intento_captcha_resuelto_sin_comportamiento(driver: webdriver.Chrome) -> Non
         LOG.warning("BLOQUEADO — Permanece en /login")
         LOG.warning("El servidor registro el evento como SOSPECHOSO en la BD y en acceso.log")
     else:
-        LOG.info("Redirigido a: %s", url_final)
-        LOG.warning("Login exitoso pero clasificado como SOSPECHOSO en METRICAS_ACCESO")
+        LOG.error("Acceso concedido inesperadamente — redirigido a: %s", url_final)
+        LOG.error("Revisar la regla de bloqueo de actividad sospechosa")
 
 
 def resolver_captcha(texto: str) -> str:
