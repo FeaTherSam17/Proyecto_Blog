@@ -27,6 +27,16 @@ export const api = {
     if (!res.ok) throw { status: res.status, data }
     return data
   },
+  async patch(path, body) {
+    const res = await fetch(BASE + path, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw { status: res.status, data }
+    return data
+  },
   async delete(path) {
     const res = await fetch(BASE + path, { method: 'DELETE' })
     const data = await res.json().catch(() => ({}))

@@ -136,7 +136,10 @@ async function cargarCategorias() {
 }
 
 async function cargarPublicacionesAdmin() {
-  try { publicaciones.value = await api.get('/api/admin/panel') } catch (e) {
+  try {
+    const data = await api.get('/api/admin/panel')
+    publicaciones.value = Array.isArray(data) ? data : (data.publicaciones || [])
+  } catch (e) {
     if (e.status === 401) router.push('/login')
   }
 }

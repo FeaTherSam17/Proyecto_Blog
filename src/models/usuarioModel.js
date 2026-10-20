@@ -238,6 +238,8 @@ const eliminarAutor = async (id_autor) => {
     }
 };
 
+const { escribirLogArchivo } = require('../utils/logger');
+
 // Persiste el resultado del login/logout y sus indicadores de comportamiento.
 // La contraseña nunca forma parte de los parámetros de esta función.
 const registrarEventoAcceso = async ({
@@ -251,7 +253,7 @@ const registrarEventoAcceso = async ({
     comportamiento = null,
     clasificacion_comportamiento = null
 }) => {
-    // COMPORTAMIENTO se guarda como JSONB para conservar el resumen de Vue
+    // 1. COMPORTAMIENTO se guarda como JSONB para conservar el resumen de Vue
     // y permitir consultas posteriores sobre sus propiedades.
     const query = `
         INSERT INTO METRICAS_ACCESO (
@@ -273,6 +275,115 @@ const registrarEventoAcceso = async ({
         comportamiento,
         clasificacion_comportamiento
     ]);
+
+    // 2. Registro síncrono en archivo de logs físico (logs/acceso.log)
+    try {
+        escribirLogArchivo(
+            `[AUDIT_EVENT] IP: ${direccion_ip || '-'} | EVENTO: ${tipo_evento} | MOTIVO: ${motivo} | EMAIL: ${email_ingresado || '-'} | BOT: ${clasificacion_comportamiento || '-'} | DURACION: ${duracion_ms || 0}ms`
+        );
+    } catch (e) {
+        // Fallo en archivo no interrumpe el flujo principal
+    }
+};
+
+/**
+ * Consulta y filtra las métricas y eventos de seguridad para el panel de administración
+ */
+const obtenerMetricasAcceso = async (filtros = {}, limit = 20, offset = 0) => {
+    const values = [];
+    const whereConditions = [];
+    let paramIndex = 1;
+
+    if (filtros.tipo_evento && filtros.tipo_evento !== 'TODOS') {
+        whereConditions.push(`M.TIPO_EVENTO = $${paramIndex}`);
+        values.push(filtros.tipo_evento);
+        paramIndex++;
+    }
+
+    if (filtros.motivo && filtros.motivo !== 'TODOS') {
+        whereConditions.push(`M.MOTIVO = $${paramIndex}`);
+        values.push(filtros.motivo);
+        paramIndex++;
+    }
+
+    if (filtros.clasificacion && filtros.clasificacion !== 'TODOS') {
+        whereConditions.push(`M.CLASIFICACION_COMPORTAMIENTO = $${paramIndex}`);
+        values.push(filtros.clasificacion);
+        paramIndex++;
+    }
+
+    if (filtros.busqueda && filtros.busqueda.trim()) {
+        whereConditions.push(`(
+            UPPER(M.EMAIL_INGRESADO) LIKE UPPER($${paramIndex})
+            OR CAST(M.DIRECCION_IP AS TEXT) LIKE $${paramIndex}
+            OR UPPER(M.AGENTE_USUARIO) LIKE UPPER($${paramIndex})
+        )`);
+        values.push(`%${filtros.busqueda.trim()}%`);
+        paramIndex++;
+    }
+
+    const whereClause = whereConditions.length > 0
+        ? `WHERE ${whereConditions.join(' AND ')}`
+        : '';
+
+    const query = `
+        SELECT 
+            M.ID_EVENTO,
+            M.ID_USUARIO,
+            M.EMAIL_INGRESADO,
+            M.TIPO_EVENTO,
+            M.MOTIVO,
+            HOST(M.DIRECCION_IP) AS DIRECCION_IP,
+            M.AGENTE_USUARIO,
+            M.DURACION_MS,
+            M.COMPORTAMIENTO,
+            M.CLASIFICACION_COMPORTAMIENTO,
+            M.FECHA_EVENTO,
+            U.NOMBRE,
+            U.PRIMER_APELLIDO
+        FROM METRICAS_ACCESO M
+        LEFT JOIN USUARIOS U ON M.ID_USUARIO = U.ID_USUARIO
+        ${whereClause}
+        ORDER BY M.FECHA_EVENTO DESC
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+
+    const countQuery = `
+        SELECT COUNT(*) AS total
+        FROM METRICAS_ACCESO M
+        ${whereClause}
+    `;
+
+    const statsQuery = `
+        SELECT
+            COUNT(*) AS total_eventos,
+            COUNT(*) FILTER (WHERE CLASIFICACION_COMPORTAMIENTO = 'SOSPECHOSO') AS sospechosos,
+            COUNT(*) FILTER (WHERE MOTIVO = 'BLOQUEADO_RATE_LIMIT') AS bloqueados_rate_limit,
+            COUNT(*) FILTER (WHERE MOTIVO = 'EXITOSO') AS exitosos,
+            COUNT(*) FILTER (WHERE MOTIVO IN ('CREDENCIALES_INVALIDAS', 'CAPTCHA_INVALIDO')) AS fallidos
+        FROM METRICAS_ACCESO
+    `;
+
+    const queryValues = [...values, limit, offset];
+    const countValues = values.slice(0, paramIndex - 1);
+
+    const [eventosResult, countResult, statsResult] = await Promise.all([
+        pool.query(query, queryValues),
+        pool.query(countQuery, countValues),
+        pool.query(statsQuery)
+    ]);
+
+    return {
+        eventos: eventosResult.rows,
+        total: parseInt(countResult.rows[0]?.total || 0, 10),
+        stats: statsResult.rows[0] || {
+            total_eventos: 0,
+            sospechosos: 0,
+            bloqueados_rate_limit: 0,
+            exitosos: 0,
+            fallidos: 0
+        }
+    };
 };
 
 module.exports = {
@@ -283,5 +394,6 @@ module.exports = {
     obtenerAutores,
     actualizarAutor,
     eliminarAutor,
-    registrarEventoAcceso
+    registrarEventoAcceso,
+    obtenerMetricasAcceso
 };
