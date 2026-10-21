@@ -8,6 +8,13 @@ ALTER TABLE USUARIOS
     ADD COLUMN IF NOT EXISTS EMAIL_VERIFICADO BOOLEAN NOT NULL DEFAULT FALSE,
     ADD COLUMN IF NOT EXISTS FECHA_VERIFICACION TIMESTAMP NULL;
 
+-- El estado PENDIENTE_VERIFICACION tiene 22 caracteres.
+-- La definicion original VARCHAR(20) lo rechazaria aunque el CHECK permita
+-- el valor. Ampliar la columna no cambia los datos existentes ni los estados
+-- ya registrados.
+ALTER TABLE USUARIOS
+    ALTER COLUMN ESTADO_USUARIO TYPE VARCHAR(30);
+
 -- Las cuentas activas existentes se consideran cuentas heredadas para no bloquear
 -- el acceso durante el despliegue. Los nuevos registros se crean como pendientes
 -- desde el backend y no dependen de este UPDATE.
