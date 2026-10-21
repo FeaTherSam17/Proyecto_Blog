@@ -1,5 +1,7 @@
 const usuarioModel = require('../models/usuarioModel');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const { enviarVerificacionEmail } = require('../services/emailService');
 
 // Configuración de límites de intentos de login y CAPTCHA
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -203,8 +205,26 @@ const registrar = async (req, res) => {
             contrasena: contrasena
         };
 
+        // Primero se crea una cuenta inactiva. Tener el formato correcto de un
+        // correo no demuestra que el solicitante controle esa dirección.
         const resultado = await usuarioModel.registrarAutor(nuevoAutor);
-        res.status(201).json({ mensaje: 'Autor registrado exitosamente', autor: resultado });
+        // El valor original solo viaja en el correo; la BD recibe exclusivamente
+        // el hash para impedir la reutilizacion directa tras una filtracion.
+        const token = crypto.randomBytes(32).toString('hex');
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+        await usuarioModel.crearTokenVerificacion(
+            resultado.id_autor,
+            tokenHash,
+            new Date(Date.now() + 30 * 60 * 1000)
+        );
+        await enviarVerificacionEmail({
+            destinatario: resultado.email,
+            nombre: resultado.nombre,
+            token
+        });
+        res.status(201).json({
+            mensaje: 'Registro creado. Revisa tu correo para activar la cuenta.'
+        });
     } catch (error) {
         console.error('Error en registro:', error);
         res.status(500).json({ error: 'Error interno del servidor al registrar' });
@@ -309,6 +329,14 @@ const login = async (req, res) => {
             return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
+        // Una cuenta sin confirmacion no puede autenticarse ni publicar.
+        if (usuario.estado_usuario === 'PENDIENTE_VERIFICACION') {
+            registrarIntentoFallido(rateLimit.key);
+            return res.status(403).json({
+                error: 'Debes verificar tu correo antes de iniciar sesión'
+            });
+        }
+
         if (usuario.estado_usuario !== 'ACTIVO') {
             registrarIntentoFallido(rateLimit.key);
             await registrarMetricaAcceso(req, {
@@ -322,7 +350,17 @@ const login = async (req, res) => {
         }
 
         // Verificar contraseña
-        if (contrasena !== usuario.contrasena) {
+        // bcrypt.compare verifica hashes nuevos sin comparar contraseñas como
+        // texto plano. La rama heredada permite migrar credenciales antiguas
+        // gradualmente durante un inicio de sesion valido.
+        let contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena);
+        const credencialHeredada = !contrasenaValida && contrasena === usuario.contrasena;
+        if (credencialHeredada) {
+            const nuevoHash = await bcrypt.hash(contrasena, 12);
+            await usuarioModel.actualizarContrasenaHash(usuario.id_usuario, nuevoHash);
+            contrasenaValida = true;
+        }
+        if (!contrasenaValida) {
             registrarIntentoFallido(rateLimit.key);
             await registrarMetricaAcceso(req, {
                 id_usuario: usuario.id_usuario,
@@ -367,6 +405,58 @@ const login = async (req, res) => {
             clasificacion_comportamiento: 'INDETERMINADO'
         }, inicio);
         res.status(500).json({ error: 'Error interno del servidor en el login' });
+    }
+};
+
+const verificarEmail = async (req, res) => {
+    const { token } = req.query;
+    if (typeof token !== 'string' || !/^[a-f0-9]{64}$/i.test(token)) {
+        return res.status(400).json({ error: 'El enlace de verificación no es válido' });
+    }
+
+    try {
+        // Se transforma el token recibido al mismo hash almacenado en BD.
+        // La activacion solo ocurre si existe, no expiro y no fue usado.
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+        const verificado = await usuarioModel.verificarEmailPorToken(tokenHash);
+        if (!verificado) {
+            return res.status(400).json({ error: 'El enlace no es válido o ha expirado' });
+        }
+        return res.json({ mensaje: 'Correo verificado. Ya puedes iniciar sesión.' });
+    } catch (error) {
+        console.error('Error al verificar correo:', error);
+        return res.status(500).json({ error: 'No fue posible verificar el correo' });
+    }
+};
+
+const reenviarVerificacion = async (req, res) => {
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const respuesta = {
+        mensaje: 'Si el correo corresponde a una cuenta pendiente, recibirás un nuevo enlace.'
+    };
+    if (!email) return res.json(respuesta);
+
+    try {
+        const usuario = await usuarioModel.buscarUsuarioPorEmail(email);
+        if (!usuario || usuario.estado_usuario !== 'PENDIENTE_VERIFICACION') {
+            return res.json(respuesta);
+        }
+
+        const token = crypto.randomBytes(32).toString('hex');
+        await usuarioModel.crearTokenVerificacion(
+            usuario.id_usuario,
+            crypto.createHash('sha256').update(token).digest('hex'),
+            new Date(Date.now() + 30 * 60 * 1000)
+        );
+        await enviarVerificacionEmail({
+            destinatario: usuario.email,
+            nombre: usuario.nombre,
+            token
+        });
+        return res.json(respuesta);
+    } catch (error) {
+        console.error('Error al reenviar verificación:', error);
+        return res.status(500).json({ error: 'No fue posible reenviar el correo' });
     }
 };
 
@@ -427,5 +517,7 @@ module.exports = {
     login,
     logout,
     obtenerUsuarioActual,
-    obtenerSexos
+    obtenerSexos,
+    verificarEmail,
+    reenviarVerificacion
 };

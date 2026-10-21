@@ -1,9 +1,13 @@
 const pool = require('../config/db');
+const bcrypt = require('bcryptjs');
 
 const registrarAutor = async (autor) => {
-    const { nombre, primer_apellido, segundo_apellido, cod_sexo, email, telefono, biografia, contrasena } = autor;
+    const {
+        nombre, primer_apellido, segundo_apellido, cod_sexo, email,
+        telefono, biografia, contrasena, estado_usuario = 'PENDIENTE_VERIFICACION'
+    } = autor;
 
-    // Si algún apellido está vacío, lo pasamos como null para respetar el schema
+    // Si algún apellido está vacío, lo pasamos como null para respetar el schema.
     const p_apellido = primer_apellido ? primer_apellido : null;
     const s_apellido = segundo_apellido ? segundo_apellido : null;
 
@@ -13,18 +17,28 @@ const registrarAutor = async (autor) => {
 
         const insertarUsuarioQuery = `
             INSERT INTO USUARIOS (
-                NOMBRE, PRIMER_APELLIDO, SEGUNDO_APELLIDO, EMAIL, CONTRASENA, ROL
+                NOMBRE, PRIMER_APELLIDO, SEGUNDO_APELLIDO, EMAIL, CONTRASENA,
+                ROL, ESTADO_USUARIO, EMAIL_VERIFICADO, FECHA_VERIFICACION
             )
-            VALUES ($1, $2, $3, $4, $5, 'AUTOR')
-            RETURNING ID_USUARIO, NOMBRE, EMAIL, ROL
+            VALUES ($1, $2, $3, $4, $5, 'AUTOR', $6, $7, $8)
+            RETURNING ID_USUARIO, NOMBRE, EMAIL, ROL, ESTADO_USUARIO
         `;
 
+        // La contraseña nunca se persiste en texto plano. El costo 12 dificulta
+        // ataques offline sin hacer excesivamente lento el registro.
+        const contrasenaHash = await bcrypt.hash(contrasena, 12);
+        // Los registros públicos quedan pendientes; el alta administrativa usa
+        // ACTIVO porque el administrador ya controla el proceso de creación.
+        const verificado = estado_usuario === 'ACTIVO';
         const usuarioResult = await client.query(insertarUsuarioQuery, [
             nombre,
             p_apellido,
             s_apellido,
             email,
-            contrasena
+            contrasenaHash,
+            estado_usuario,
+            verificado,
+            verificado ? new Date() : null
         ]);
 
         const idUsuario = usuarioResult.rows[0].id_usuario;
@@ -40,7 +54,8 @@ const registrarAutor = async (autor) => {
             id_autor: idUsuario,
             nombre: usuarioResult.rows[0].nombre,
             email: usuarioResult.rows[0].email,
-            rol: usuarioResult.rows[0].rol
+            rol: usuarioResult.rows[0].rol,
+            estado_usuario: usuarioResult.rows[0].estado_usuario
         };
     } catch (error) {
         await client.query('ROLLBACK');
@@ -58,6 +73,69 @@ const buscarUsuarioPorEmail = async (email) => {
     `;
     const result = await pool.query(query, [email]);
     return result.rows[0];
+};
+
+const actualizarContrasenaHash = async (idUsuario, contrasenaHash) => {
+    await pool.query(
+        `UPDATE USUARIOS SET CONTRASENA = $1 WHERE ID_USUARIO = $2`,
+        [contrasenaHash, idUsuario]
+    );
+};
+
+const crearTokenVerificacion = async (idUsuario, tokenHash, expiraEn) => {
+    // Solo debe existir un token vigente por usuario para invalidar enlaces
+    // anteriores cuando se solicita un reenvio.
+    await pool.query(
+        `DELETE FROM TOKENS_VERIFICACION_EMAIL WHERE ID_USUARIO = $1 AND USADO_EN IS NULL`,
+        [idUsuario]
+    );
+    await pool.query(
+        `INSERT INTO TOKENS_VERIFICACION_EMAIL (ID_USUARIO, TOKEN_HASH, EXPIRA_EN)
+         VALUES ($1, $2, $3)`,
+        [idUsuario, tokenHash, expiraEn]
+    );
+};
+
+const verificarEmailPorToken = async (tokenHash) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        // FOR UPDATE evita que dos peticiones concurrentes consuman el mismo
+        // token al mismo tiempo.
+        const tokenResult = await client.query(
+            `SELECT ID_TOKEN, ID_USUARIO
+             FROM TOKENS_VERIFICACION_EMAIL
+             WHERE TOKEN_HASH = $1 AND USADO_EN IS NULL AND EXPIRA_EN > CURRENT_TIMESTAMP
+             FOR UPDATE`,
+            [tokenHash]
+        );
+        const token = tokenResult.rows[0];
+        if (!token) {
+            await client.query('ROLLBACK');
+            return false;
+        }
+
+        // La activacion y el marcado de token usado se confirman en una
+        // transaccion para no dejar estados intermedios.
+        await client.query(
+            `UPDATE USUARIOS
+             SET EMAIL_VERIFICADO = TRUE, FECHA_VERIFICACION = CURRENT_TIMESTAMP,
+                 ESTADO_USUARIO = 'ACTIVO'
+             WHERE ID_USUARIO = $1 AND ESTADO_USUARIO = 'PENDIENTE_VERIFICACION'`,
+            [token.id_usuario]
+        );
+        await client.query(
+            `UPDATE TOKENS_VERIFICACION_EMAIL SET USADO_EN = CURRENT_TIMESTAMP WHERE ID_TOKEN = $1`,
+            [token.id_token]
+        );
+        await client.query('COMMIT');
+        return true;
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
 };
 
 const obtenerAutorPorId = async (id_autor) => {
@@ -175,8 +253,11 @@ const actualizarAutor = async (id_autor, datos) => {
                 RETURNING ID_USUARIO
             `;
 
+        // Las contraseñas nuevas o modificadas siguen el mismo esquema de hash
+        // que el registro público.
+        const contrasenaHash = contrasena ? await bcrypt.hash(contrasena, 12) : null;
         const usuarioValues = contrasena
-            ? [nombre, primer_apellido, segundo_apellido, email, contrasena, id_autor]
+            ? [nombre, primer_apellido, segundo_apellido, email, contrasenaHash, id_autor]
             : [nombre, primer_apellido, segundo_apellido, email, id_autor];
 
         const usuarioResult = await client.query(usuarioQuery, usuarioValues);
@@ -395,5 +476,8 @@ module.exports = {
     actualizarAutor,
     eliminarAutor,
     registrarEventoAcceso,
+    crearTokenVerificacion,
+    verificarEmailPorToken,
+    actualizarContrasenaHash,
     obtenerMetricasAcceso
 };

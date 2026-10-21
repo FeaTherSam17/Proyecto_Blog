@@ -1,5 +1,29 @@
 # Sistema de Seguridad, Detección de Bots y Métricas de Acceso
 
+## Verificación de autores y protección CSRF
+
+Los registros públicos se crean con estado `PENDIENTE_VERIFICACION`. El backend genera
+un token aleatorio de un solo uso, almacena únicamente su SHA-256 en
+`TOKENS_VERIFICACION_EMAIL` y envía el enlace mediante SMTP. El token expira en 30
+minutos. Para aplicar el cambio a una base existente, ejecutar
+`BD/migracion-verificacion-correo.sql` con un usuario que pueda alterar el esquema.
+
+Configura `FRONTEND_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` y
+`SMTP_FROM` como secretos del entorno. Nunca los guardes en el repositorio.
+
+### ¿Qué es CSRF?
+
+CSRF (Cross-Site Request Forgery o falsificación de solicitudes entre sitios) ocurre
+cuando un sitio malicioso intenta enviar una petición a este blog usando
+automáticamente la cookie de sesión que el navegador ya tiene guardada. Por ejemplo,
+podría intentar crear o borrar una publicación sin que el usuario lo solicite.
+
+La aplicación lo mitiga con un token CSRF generado por sesión. El frontend solicita
+`GET /api/auth/csrf-token` y envía el valor en `X-CSRF-Token` en cada `POST`, `PUT`,
+`PATCH` o `DELETE`. El backend compara el token con una comparación constante y
+rechaza la petición si falta, no coincide o el origen no está permitido. CSRF no
+reemplaza autenticación: protege las acciones que ya usan una sesión válida.
+
 Este documento detalla la arquitectura de seguridad implementada en el proyecto para mitigar ataques automatizados, fuerza bruta y scraping mediante herramientas como **Selenium**, **Puppeteer** o **Headless Chrome**.
 
 El sistema se estructura en **5 pilares defensivos** que combinan detección comportamental en el cliente (Vue 3), control de tráfico, auditoría y verificación estricta en el servidor (Express + PostgreSQL).

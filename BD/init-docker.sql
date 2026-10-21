@@ -95,7 +95,7 @@ CREATE TABLE USUARIOS (
 );
 
 INSERT INTO USUARIOS (NOMBRE, PRIMER_APELLIDO, SEGUNDO_APELLIDO, EMAIL, CONTRASENA, ROL, ESTADO_USUARIO)
-VALUES ('Erika', 'Adame', 'García', 'erikaadmin@gmail.com', 'admin123', 'ADMIN', 'ACTIVO');
+VALUES ('Erika', 'Adame', 'García', 'erikaadmin@gmail.com', '$2b$12$Y24XMqdy2ucmWE/6INJpduxnhgE8D44HrB7BoXSIRYSdyn8nGfDzG', 'ADMIN', 'ACTIVO');
 
 -- Eliminar constraint y columnas de la tabla autores
 ALTER TABLE AUTORES DROP CONSTRAINT IF EXISTS AUTORES_APELLIDOS_CK;

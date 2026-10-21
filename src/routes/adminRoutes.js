@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
+const { requerirCsrf } = require('../middleware/csrf');
 
 // Middleware: verifica que el usuario esté autenticado
 const requerirAutenticacion = (req, res, next) => {
@@ -21,6 +22,12 @@ const requerirAdmin = (req, res, next) => {
 
 // Aplicar autenticación a todas las rutas
 router.use(requerirAutenticacion);
+router.use((req, res, next) => {
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+        return requerirCsrf(req, res, next);
+    }
+    next();
+});
 
 // Rutas accesibles por AUTOR y ADMIN
 router.get('/panel', adminController.panelAdmin);

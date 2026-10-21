@@ -118,7 +118,7 @@ async function hacerRegistro() {
   errorMsg.value = ''
   try {
     await api.post('/api/auth/registro', registroData.value)
-    alert('¡Registro exitoso! Ahora puedes iniciar sesión.')
+    alert('Registro creado. Revisa tu correo y confirma el enlace antes de iniciar sesión.')
     router.push('/login')
   } catch (e) {
     errorMsg.value = e.data?.error || 'Error al crear la cuenta'

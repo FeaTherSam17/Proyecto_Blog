@@ -1,5 +1,25 @@
 // Servicio centralizado para las llamadas a la API del backend
 const BASE = import.meta.env.VITE_API_URL || '';
+let csrfToken = null
+
+async function obtenerCsrfToken() {
+  if (csrfToken) return csrfToken
+  const res = await fetch(BASE + '/api/auth/csrf-token', { credentials: 'include' })
+  if (!res.ok) throw new Error('No fue posible preparar la protección CSRF')
+  // Se conserva en memoria, no en localStorage, para reducir su exposicion
+  // y mantenerlo asociado a la cookie de sesion actual.
+  csrfToken = (await res.json()).csrfToken
+  return csrfToken
+}
+
+async function opcionesMutacion() {
+  // Todas las operaciones que cambian datos incluyen el token exigido por
+  // el middleware CSRF del backend.
+  return {
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': await obtenerCsrfToken()
+  }
+}
 
 export const api = {
   async get(path) {
@@ -10,7 +30,7 @@ export const api = {
   async post(path, body) {
     const res = await fetch(BASE + path, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await opcionesMutacion(),
       body: JSON.stringify(body),
       credentials: 'include'
     })
@@ -21,7 +41,7 @@ export const api = {
   async put(path, body) {
     const res = await fetch(BASE + path, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await opcionesMutacion(),
       body: JSON.stringify(body),
       credentials: 'include'
     })
@@ -32,7 +52,7 @@ export const api = {
   async patch(path, body) {
     const res = await fetch(BASE + path, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await opcionesMutacion(),
       body: JSON.stringify(body),
       credentials: 'include'
     })
@@ -41,8 +61,9 @@ export const api = {
     return data
   },
   async delete(path) {
-    const res = await fetch(BASE + path, { 
+    const res = await fetch(BASE + path, {
       method: 'DELETE',
+      headers: { 'X-CSRF-Token': await obtenerCsrfToken() },
       credentials: 'include'
     })
     const data = await res.json().catch(() => ({}))

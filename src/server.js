@@ -15,7 +15,7 @@ const port = process.env.PORT || 3000;
 
 // Middleware nativo para habilitar CORS blindado
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://proyecto-blog-0nqd.onrender.com');
+  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'https://proyecto-blog-0nqd.onrender.com');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');

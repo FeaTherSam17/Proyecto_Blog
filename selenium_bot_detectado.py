@@ -33,6 +33,8 @@ Ejecución:
 
 from __future__ import annotations
 
+import os
+
 import logging
 import re
 import time
@@ -62,7 +64,7 @@ BACKEND  = "http://10.228.6.137:3002"
 LOGIN_URL = f"{FRONTEND}/login"
 
 EMAIL    = "erikaadmin@gmail.com"   # cambia por un email real registrado
-PASSWORD = "admin123"               # cambia por la contraseña real
+PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "")
 
 
 # ─────────────────────────────────────────────

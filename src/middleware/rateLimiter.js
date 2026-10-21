@@ -86,8 +86,22 @@ const loginRateLimiter = rateLimit({
     }
 });
 
+const registrationRateLimiter = rateLimit({
+    // Reduce registros automatizados y evita consumir masivamente el servicio
+    // SMTP. El limite es independiente del limite de inicio de sesion.
+    windowMs: 60 * 60 * 1000,
+    limit: 3,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    keyGenerator: generarClaveRateLimit,
+    handler: (req, res) => res.status(429).json({
+        error: 'Demasiados registros desde esta conexión. Intenta más tarde.'
+    })
+});
+
 module.exports = {
     generarClaveRateLimit,
     apiRateLimiter,
-    loginRateLimiter
+    loginRateLimiter,
+    registrationRateLimiter
 };

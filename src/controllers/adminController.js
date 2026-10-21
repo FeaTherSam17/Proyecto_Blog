@@ -170,7 +170,8 @@ const crearAutor = async (req, res) => {
             email: email.trim(),
             telefono: telefono.trim(),
             biografia: biografia.trim(),
-            contrasena: contrasena.trim()
+            contrasena: contrasena.trim(),
+            estado_usuario: 'ACTIVO'
         });
 
         res.status(201).json({ mensaje: 'Autor creado exitosamente', autor: resultado });

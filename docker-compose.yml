@@ -13,6 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./BD/init-docker.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
       - ./BD/datos_prueba.sql:/docker-entrypoint-initdb.d/02-datos_prueba.sql:ro
+      - ./BD/migracion-verificacion-correo.sql:/docker-entrypoint-initdb.d/03-migracion-verificacion.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d proyecto_blog"]
       interval: 5s
@@ -38,6 +39,13 @@ services:
       PORT: 3002
       SESSION_SECRET: super_secreto_blog
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5174}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
       CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3002:3002"
