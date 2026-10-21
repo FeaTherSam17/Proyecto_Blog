@@ -1,16 +1,33 @@
 const crypto = require('crypto');
 
-function obtenerTokenCsrf(req, res) {
-    // El token queda ligado a la sesion. Un sitio externo no puede conocerlo
-    // mediante una peticion cross-site normal y, por tanto, no puede falsificar
-    // una operacion que use la cookie de sesion.
-    if (!req.session.csrfToken) {
-        req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+const CSRF_TOKEN_TTL_MS = 30 * 60 * 1000;
+
+function obtenerSecretoCsrf() {
+    const secreto = process.env.CSRF_SECRET || process.env.SESSION_SECRET;
+    if (!secreto || secreto.length < 32) {
+        throw new Error('CSRF_SECRET o SESSION_SECRET debe tener al menos 32 caracteres');
     }
-    // Evita que un proxy o navegador reutilice un token correspondiente a una
-    // sesión anterior.
+    return secreto;
+}
+
+function firmar(valor) {
+    return crypto
+        .createHmac('sha256', obtenerSecretoCsrf())
+        .update(valor)
+        .digest('hex');
+}
+
+function obtenerTokenCsrf(req, res) {
+    // El token no depende de MemoryStore ni de una instancia concreta del
+    // backend. Esto permite validarlo correctamente detrás de un proxy o
+    // balanceador sin cambiar el modelo de seguridad.
+    const emision = Date.now().toString();
+    const nonce = crypto.randomBytes(32).toString('hex');
+    const contenido = `${emision}.${nonce}`;
+    const token = `${contenido}.${firmar(contenido)}`;
+
     res.set('Cache-Control', 'no-store');
-    res.json({ csrfToken: req.session.csrfToken });
+    res.json({ csrfToken: token });
 }
 
 function validarOrigen(req) {
@@ -26,12 +43,22 @@ function requerirCsrf(req, res, next) {
         return res.status(403).json({ error: 'Origen no permitido' });
     }
 
-    const token = req.get('x-csrf-token');
-    // Se compara en tiempo constante y se comprueba la longitud antes de llamar
-    // a timingSafeEqual, que requiere buffers del mismo tamano.
-    const recibido = token ? Buffer.from(token) : null;
-    const esperado = req.session.csrfToken ? Buffer.from(req.session.csrfToken) : null;
-    const coincide = recibido && esperado
+    const token = req.get('x-csrf-token') || '';
+    const partes = token.split('.');
+    const [emision = '', nonce = '', firma = ''] = partes;
+    const contenido = `${emision}.${nonce}`;
+    const firmaEsperada = partes.length === 3 ? firmar(contenido) : '';
+    const recibido = Buffer.from(firma, 'hex');
+    const esperado = Buffer.from(firmaEsperada, 'hex');
+    const edad = Number(emision) ? Date.now() - Number(emision) : Infinity;
+    // El token debe tener formato correcto, no ser futuro, no superar su TTL
+    // y coincidir con la firma HMAC validada en tiempo constante.
+    const coincide = partes.length === 3
+        && /^[0-9]+$/.test(emision)
+        && /^[a-f0-9]{64}$/i.test(nonce)
+        && /^[a-f0-9]{64}$/i.test(firma)
+        && edad >= 0
+        && edad <= CSRF_TOKEN_TTL_MS
         && recibido.length === esperado.length
         && crypto.timingSafeEqual(recibido, esperado);
     if (!coincide) {
