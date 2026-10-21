@@ -7,6 +7,9 @@ function obtenerTokenCsrf(req, res) {
     if (!req.session.csrfToken) {
         req.session.csrfToken = crypto.randomBytes(32).toString('hex');
     }
+    // Evita que un proxy o navegador reutilice un token correspondiente a una
+    // sesión anterior.
+    res.set('Cache-Control', 'no-store');
     res.json({ csrfToken: req.session.csrfToken });
 }
 
