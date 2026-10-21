@@ -46,6 +46,9 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL:-}
+      BREVO_SENDER_NAME: ${BREVO_SENDER_NAME:-TAD Blog}
       CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3002:3002"
