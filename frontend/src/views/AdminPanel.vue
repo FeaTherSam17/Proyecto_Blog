@@ -122,7 +122,6 @@
               <div class="result-item" v-for="autor in autoresFiltradosPanel" :key="autor.id">
                 <h3 class="author-name">{{ nombreCompletoAutorPanel(autor) }}</h3>
                 <p class="text-secondary author-mail">{{ autor.email }}</p>
-                <p class="text-secondary author-phone">{{ autor.telefono }}</p>
                 <div class="author-item-footer">
                   <span class="badge">{{ autor.estatus }}</span>
                   <div class="author-actions">
@@ -353,7 +352,6 @@
             </select>
           </div>
           <div class="mb-3"><label class="category-tag mb-2">Email</label><input v-model="nuevoAutorPanel.email" type="email" class="form-control w-100" required></div>
-          <div class="mb-3"><label class="category-tag mb-2">Telefono</label><input v-model="nuevoAutorPanel.telefono" type="tel" class="form-control w-100" required></div>
           <div class="mb-3"><label class="category-tag mb-2">Biografia</label><textarea v-model="nuevoAutorPanel.biografia" class="form-control w-100" rows="4" required></textarea></div>
           <div class="mb-4">
             <label class="category-tag mb-2">Contrasena {{ editandoAutorPanelId ? '(opcional)' : '' }}</label>
@@ -430,7 +428,7 @@ const errorMsg = ref('')
 const sexos = ref([])
 const timerBusquedaPublicaciones = ref(null)
 const timerBusquedaAutores = ref(null)
-const nuevoAutorPanel = ref({ nombre: '', primer_apellido: '', segundo_apellido: '', sexo: '', email: '', telefono: '', biografia: '', contrasena: '' })
+const nuevoAutorPanel = ref({ nombre: '', primer_apellido: '', segundo_apellido: '', sexo: '', email: '', biografia: '', contrasena: '' })
 
 // Variables de estado para Auditoría y Logs
 const subseccionLogs = ref('metricas') // 'metricas' o 'archivo'
@@ -564,7 +562,7 @@ async function cargarAutoresPanel(pagina = 0) {
     const payload = await api.get(`/api/admin/autores?${params.toString()}`)
     const autoresDB = Array.isArray(payload) ? payload : (payload.autores || [])
     const total = Array.isArray(payload) ? autoresDB.length : (payload.total || 0)
-    autoresPanel.value = autoresDB.map((autor) => ({ id: autor.id_autor, nombre: autor.nombre, primer_apellido: autor.primer_apellido, segundo_apellido: autor.segundo_apellido, sexo: autor.cod_sexo, email: autor.email, telefono: autor.telefono, biografia: autor.biografia, estatus: autor.estado_autor || autor.estado_usuario || 'ACTIVO' }))
+    autoresPanel.value = autoresDB.map((autor) => ({ id: autor.id_autor, nombre: autor.nombre, primer_apellido: autor.primer_apellido, segundo_apellido: autor.segundo_apellido, sexo: autor.cod_sexo, email: autor.email, biografia: autor.biografia, estatus: autor.estado_autor || autor.estado_usuario || 'ACTIVO' }))
     totalPaginasAutores.value = Math.ceil(total / limitStr)
   } catch (e) { if (e.status === 401) router.push('/login') }
 }
@@ -668,13 +666,13 @@ function abrirModalAutorPanel() { errorMsg.value = ''; editandoAutorPanelId.valu
 function cerrarModalAutorPanel() {
   mostrarModalAutorPanel.value = false
   editandoAutorPanelId.value = null
-  nuevoAutorPanel.value = { nombre: '', primer_apellido: '', segundo_apellido: '', sexo: '', email: '', telefono: '', biografia: '', contrasena: '' }
+  nuevoAutorPanel.value = { nombre: '', primer_apellido: '', segundo_apellido: '', sexo: '', email: '', biografia: '', contrasena: '' }
 }
 
 function editarAutorPanel(autor) {
   errorMsg.value = ''
   editandoAutorPanelId.value = autor.id
-  nuevoAutorPanel.value = { nombre: autor.nombre || '', primer_apellido: autor.primer_apellido || '', segundo_apellido: autor.segundo_apellido || '', sexo: autor.sexo || '', email: autor.email || '', telefono: autor.telefono || '', biografia: autor.biografia || '', contrasena: '' }
+  nuevoAutorPanel.value = { nombre: autor.nombre || '', primer_apellido: autor.primer_apellido || '', segundo_apellido: autor.segundo_apellido || '', sexo: autor.sexo || '', email: autor.email || '', biografia: autor.biografia || '', contrasena: '' }
   mostrarModalAutorPanel.value = true
 }
 
@@ -694,11 +692,10 @@ async function guardarAutorPanel() {
     segundo_apellido: nuevoAutorPanel.value.segundo_apellido.trim(),
     cod_sexo: nuevoAutorPanel.value.sexo,
     email: nuevoAutorPanel.value.email.trim(),
-    telefono: nuevoAutorPanel.value.telefono.trim(),
     biografia: nuevoAutorPanel.value.biografia.trim(),
     contrasena: nuevoAutorPanel.value.contrasena,
   }
-  const completo = payload.nombre && payload.primer_apellido && payload.segundo_apellido && payload.cod_sexo && payload.email && payload.telefono && payload.biografia
+  const completo = payload.nombre && payload.primer_apellido && payload.segundo_apellido && payload.cod_sexo && payload.email && payload.biografia
   if (!completo) { errorMsg.value = 'Por favor, llena todos los campos obligatorios.'; return }
   if (!editandoAutorPanelId.value && !payload.contrasena) { errorMsg.value = 'La contraseña es obligatoria para un autor nuevo.'; return }
   if (editandoAutorPanelId.value && !payload.contrasena) delete payload.contrasena

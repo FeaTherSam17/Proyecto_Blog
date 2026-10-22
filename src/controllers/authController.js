@@ -144,10 +144,10 @@ const obtenerCaptcha = (req, res) => {
 
 const registrar = async (req, res) => {
     try {
-        const { nombre, primer_apellido, segundo_apellido, cod_sexo, email, telefono, biografia, contrasena } = req.body;
+        const { nombre, primer_apellido, segundo_apellido, cod_sexo, email, biografia, contrasena } = req.body;
 
         // Validaciones básicas que deberían estar también en frontend
-        if (!nombre || !email || !telefono || !biografia || !contrasena || !cod_sexo) {
+        if (!nombre || !email || !biografia || !contrasena || !cod_sexo) {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });
         }
 
@@ -183,11 +183,6 @@ const registrar = async (req, res) => {
         }
 
         
-        const telefonoRegex = /^[0-9]{10}$/;
-        if (!telefonoRegex.test(telefono)) {
-            return res.status(400).json({ error: 'El teléfono debe tener exactamente 10 números' });
-        }
-
         // Validar límite de biografía
         if (biografia.length > 500) {
             return res.status(400).json({ error: 'La biografía no puede exceder los 500 caracteres' });
@@ -200,7 +195,6 @@ const registrar = async (req, res) => {
             segundo_apellido,
             cod_sexo,
             email,
-            telefono,
             biografia,
             contrasena: contrasena
         };

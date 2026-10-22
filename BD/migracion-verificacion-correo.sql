@@ -15,6 +15,10 @@ ALTER TABLE USUARIOS
 ALTER TABLE USUARIOS
     ALTER COLUMN ESTADO_USUARIO TYPE VARCHAR(30);
 
+-- El perfil del autor ya no contiene telefono. PostgreSQL elimina
+-- automaticamente las restricciones que dependan de esta columna.
+ALTER TABLE AUTORES DROP COLUMN IF EXISTS TELEFONO;
+
 -- Las cuentas activas existentes se consideran cuentas heredadas para no bloquear
 -- el acceso durante el despliegue. Los nuevos registros se crean como pendientes
 -- desde el backend y no dependen de este UPDATE.

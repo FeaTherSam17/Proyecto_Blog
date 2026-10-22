@@ -32,11 +32,10 @@ BEGIN
         RETURNING ID_USUARIO INTO nuevo_id_usuario;
 
         -- Insertar perfil en AUTORES vinculado al ID generado
-        INSERT INTO AUTORES (ID_AUTOR, COD_SEXO, TELEFONO, BIOGRAFIA)
+        INSERT INTO AUTORES (ID_AUTOR, COD_SEXO, BIOGRAFIA)
         VALUES (
             nuevo_id_usuario, 
             sexo_arr[1 + (i % 2)], 
-            '555000' || LPAD(i::text, 4, '0'), 
             'Biografía generada automáticamente para el autor de prueba número ' || i || '. Experto en diversos campos y contribuidor regular del blog.'
         );
 

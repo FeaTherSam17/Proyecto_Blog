@@ -39,14 +39,19 @@ app.use(express.urlencoded({ extended: true }));
 // 1. VITAL: Permitir que Render acepte las cookies seguras de tu proxy
 app.set('trust proxy', 1);
 
-// 2. VITAL: Configuración de Sesiones con sameSite en 'none' para cruzar dominios
+// En producción frontend y backend viven en dominios distintos y necesitan
+// cookies Secure/SameSite=None. En local Vite usa el proxy /api, por lo que
+// la cookie debe poder viajar por HTTP y se configura como SameSite=Lax.
+const esProduccion = process.env.NODE_ENV === 'production';
+
+// 2. Configuración de sesiones compatible con producción y desarrollo local
 app.use(session({
     secret: process.env.SESSION_SECRET || 'super_secreto_blog',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, // true en producción
-        sameSite: 'none', // Permite que la sesión viaje a tu dominio de Vue
+        secure: esProduccion,
+        sameSite: esProduccion ? 'none' : 'lax',
         maxAge: 1000 * 60 * 60 * 24 // 1 día
     }
 }));

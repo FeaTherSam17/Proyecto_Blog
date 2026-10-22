@@ -44,18 +44,6 @@
           </div>
 
           <div class="mb-3">
-            <label class="category-tag mb-2" style="font-size: 0.75rem;">TELÉFONO *</label>
-            <input
-              type="text"
-              v-model="registroData.telefono"
-              class="form-control w-100"
-              pattern="^[0-9]{10}$"
-              title="Debe contener exactamente 10 números"
-              required
-            >
-          </div>
-
-          <div class="mb-3">
             <label class="category-tag mb-2" style="font-size: 0.75rem;">BIOGRAFÍA *</label>
             <textarea v-model="registroData.biografia" class="form-control w-100" rows="3" maxlength="500" required></textarea>
           </div>
@@ -96,7 +84,6 @@ const registroData = ref({
   segundo_apellido: '',
   cod_sexo: '',
   email: '',
-  telefono: '',
   biografia: '',
   contrasena: '',
 })

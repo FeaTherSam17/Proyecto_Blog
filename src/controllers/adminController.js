@@ -138,9 +138,9 @@ const actualizarPublicacion = async (req, res) => {
 
 const crearAutor = async (req, res) => {
     try {
-        const { nombre, primer_apellido, segundo_apellido, cod_sexo, email, telefono, biografia, contrasena } = req.body;
+        const { nombre, primer_apellido, segundo_apellido, cod_sexo, email, biografia, contrasena } = req.body;
 
-        if (!nombre || !cod_sexo || !email || !telefono || !biografia || !contrasena) {
+        if (!nombre || !cod_sexo || !email || !biografia || !contrasena) {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });
         }
 
@@ -153,11 +153,6 @@ const crearAutor = async (req, res) => {
             return res.status(400).json({ error: 'El formato del email es inválido' });
         }
 
-        const telefonoRegex = /^[0-9]{10}$/;
-        if (!telefonoRegex.test(telefono)) {
-            return res.status(400).json({ error: 'El teléfono debe tener exactamente 10 dígitos' });
-        }
-
         if (biografia.length > 500) {
             return res.status(400).json({ error: 'La biografía no puede exceder los 500 caracteres' });
         }
@@ -168,7 +163,6 @@ const crearAutor = async (req, res) => {
             segundo_apellido: segundo_apellido ? segundo_apellido.trim() : null,
             cod_sexo,
             email: email.trim(),
-            telefono: telefono.trim(),
             biografia: biografia.trim(),
             contrasena: contrasena.trim(),
             estado_usuario: 'ACTIVO'
@@ -206,7 +200,6 @@ const actualizarAutor = async (req, res) => {
             segundo_apellido,
             cod_sexo,
             email,
-            telefono,
             biografia,
             contrasena
         } = req.body;
@@ -215,7 +208,7 @@ const actualizarAutor = async (req, res) => {
             return res.status(400).json({ error: 'ID de autor requerido' });
         }
 
-        if (!nombre || !cod_sexo || !email || !telefono || !biografia) {
+        if (!nombre || !cod_sexo || !email || !biografia) {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });
         }
 
@@ -234,7 +227,6 @@ const actualizarAutor = async (req, res) => {
             segundo_apellido: segundo_apellido ? segundo_apellido.trim() : null,
             cod_sexo,
             email: email.trim(),
-            telefono: telefono.trim(),
             biografia: biografia.trim(),
             contrasena: contrasenaHash
         });

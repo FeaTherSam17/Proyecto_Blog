@@ -36,9 +36,12 @@ services:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: proyecto_blog
+      DB_SSL: "false"
       PORT: 3002
       SESSION_SECRET: super_secreto_blog
-      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      # Clave oficial de prueba para el entorno local. En producción debe
+      # sobrescribirse mediante TURNSTILE_SECRET_KEY en Render.
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-1x0000000000000000000000000000000AA}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5174}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
@@ -66,7 +69,9 @@ services:
       - backend
     environment:
       VITE_PROXY_TARGET: "http://backend:3002"
-      VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-}
+      # Debe corresponder con la clave secreta de prueba del backend local.
+      # En producción debe sobrescribirse mediante VITE_TURNSTILE_SITE_KEY.
+      VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-1x00000000000000000000AA}
       CHOKIDAR_USEPOLLING: "true"
     ports:
       - "5174:5174"

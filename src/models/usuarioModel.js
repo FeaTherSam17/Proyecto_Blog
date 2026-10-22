@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const registrarAutor = async (autor) => {
     const {
         nombre, primer_apellido, segundo_apellido, cod_sexo, email,
-        telefono, biografia, contrasena, estado_usuario = 'PENDIENTE_VERIFICACION'
+        biografia, contrasena, estado_usuario = 'PENDIENTE_VERIFICACION'
     } = autor;
 
     // Si algún apellido está vacío, lo pasamos como null para respetar el schema.
@@ -44,10 +44,10 @@ const registrarAutor = async (autor) => {
         const idUsuario = usuarioResult.rows[0].id_usuario;
 
         const insertarAutorQuery = `
-            INSERT INTO AUTORES (ID_AUTOR, COD_SEXO, TELEFONO, BIOGRAFIA)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO AUTORES (ID_AUTOR, COD_SEXO, BIOGRAFIA)
+            VALUES ($1, $2, $3)
         `;
-        await client.query(insertarAutorQuery, [idUsuario, cod_sexo, telefono, biografia]);
+        await client.query(insertarAutorQuery, [idUsuario, cod_sexo, biografia]);
 
         await client.query('COMMIT');
         return {
@@ -148,7 +148,6 @@ const obtenerAutorPorId = async (id_autor) => {
             U.EMAIL,
             U.ROL,
             U.ESTADO_USUARIO,
-            A.TELEFONO,
             A.BIOGRAFIA,
             A.ESTADO_AUTOR
         FROM USUARIOS U
@@ -191,7 +190,6 @@ const obtenerAutores = async (termino = '', limit = 10, offset = 0) => {
             U.EMAIL,
             U.ESTADO_USUARIO,
             A.COD_SEXO,
-            A.TELEFONO,
             A.BIOGRAFIA,
             A.ESTADO_AUTOR
         FROM USUARIOS U
@@ -223,7 +221,6 @@ const actualizarAutor = async (id_autor, datos) => {
         segundo_apellido,
         cod_sexo,
         email,
-        telefono,
         biografia,
         contrasena
     } = datos;
@@ -269,12 +266,11 @@ const actualizarAutor = async (id_autor, datos) => {
         const autorQuery = `
             UPDATE AUTORES
             SET COD_SEXO = $1,
-                TELEFONO = $2,
-                BIOGRAFIA = $3
-            WHERE ID_AUTOR = $4
+                BIOGRAFIA = $2
+            WHERE ID_AUTOR = $3
             RETURNING ID_AUTOR
         `;
-        await client.query(autorQuery, [cod_sexo, telefono, biografia, id_autor]);
+        await client.query(autorQuery, [cod_sexo, biografia, id_autor]);
 
         await client.query('COMMIT');
         return { id_autor };
