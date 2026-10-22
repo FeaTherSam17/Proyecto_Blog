@@ -1,8 +1,10 @@
 const express = require('express');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const morgan = require('morgan');
 const path = require('path');
 require('dotenv').config();
+const pool = require('./config/db');
 
 const authRoutes = require('./routes/authRoutes');
 const blogRoutes = require('./routes/blogRoutes');
@@ -44,9 +46,16 @@ app.set('trust proxy', 1);
 // la cookie debe poder viajar por HTTP y se configura como SameSite=Lax.
 const esProduccion = process.env.NODE_ENV === 'production';
 
-// 2. Configuración de sesiones compatible con producción y desarrollo local
+// 2. Las sesiones se guardan en PostgreSQL, no en la memoria del proceso.
+// Esto evita perder el acceso cuando Render distribuye solicitudes entre
+// instancias o reinicia el backend.
 app.use(session({
     secret: process.env.SESSION_SECRET || 'super_secreto_blog',
+    store: new pgSession({
+        pool,
+        tableName: 'SESIONES_EXPRESS',
+        createTableIfMissing: true
+    }),
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -80,13 +89,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/admin', adminRoutes);
 
-// 4. DESPUÉS SE DECLARA EL CATCH-ALL DE PRODUCCIÓN PARA VUE
-if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../frontend/dist')));
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-    });
-}
+// // 4. DESPUÉS SE DECLARA EL CATCH-ALL DE PRODUCCIÓN PARA VUE
+// if (process.env.NODE_ENV === 'production') {
+//     app.use(express.static(path.join(__dirname, '../frontend/dist')));
+//     app.get('*', (req, res) => {
+//         res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+//     });
+// }
 
 // Iniciar el servidor
 app.listen(port, () => {
