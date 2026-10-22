@@ -89,13 +89,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/admin', adminRoutes);
 
-// // 4. DESPUÉS SE DECLARA EL CATCH-ALL DE PRODUCCIÓN PARA VUE
-// if (process.env.NODE_ENV === 'production') {
-//     app.use(express.static(path.join(__dirname, '../frontend/dist')));
-//     app.get('*', (req, res) => {
-//         res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-//     });
-// }
+// 4. DESPUÉS SE DECLARA EL CATCH-ALL DE PRODUCCIÓN PARA VUE
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../frontend/dist')));
+    
+    // Se usa app.use en lugar de app.get('*') para evitar el error de path-to-regexp
+    app.use((req, res) => {
+        res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+    });
+}
 
 // Iniciar el servidor
 app.listen(port, () => {
