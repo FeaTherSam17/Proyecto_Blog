@@ -10,6 +10,7 @@ const authRoutes = require('./routes/authRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const detectarBotPasivamente = require('./middleware/botDetection');
+const protegerPeticiones = require('./middleware/requestGuard');
 const { apiRateLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
@@ -83,6 +84,7 @@ app.use(morgan('[:date[iso]] :client-ip [:session-id] :method :url :status :res[
 // Detección pasiva y Rate Limiting
 app.use('/api', detectarBotPasivamente);
 app.use('/api', apiRateLimiter);
+app.use('/api', protegerPeticiones);
 
 // 3. PRIMERO SE DECLARAN LAS RUTAS DE LA API
 app.use('/api/auth', authRoutes);
