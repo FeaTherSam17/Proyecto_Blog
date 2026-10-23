@@ -38,7 +38,8 @@ services:
       DB_NAME: proyecto_blog
       DB_SSL: "false"
       PORT: 3002
-      SESSION_SECRET: super_secreto_blog
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET debe definirse en .env}
+      CSRF_SECRET: ${CSRF_SECRET:?CSRF_SECRET debe definirse en .env}
       # Clave oficial de prueba para el entorno local. En producción debe
       # sobrescribirse mediante TURNSTILE_SECRET_KEY en Render.
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-1x0000000000000000000000000000000AA}

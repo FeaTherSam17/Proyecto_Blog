@@ -293,3 +293,5 @@
 [2026-10-16T19:34:32.288Z] ::ffff:172.18.0.4 [4Fp2HWUElr...] GET /api/blog/posts 304 - - 34.859 ms | bot:BAJO[0] | "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
 [2026-10-16T19:34:32.316Z] ::ffff:172.18.0.4 [4Fp2HWUElr...] GET /api/blog/categorias 304 - - 3.300 ms | bot:BAJO[20] | "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
 [2026-10-16T19:34:32.329Z] ::ffff:172.18.0.4 [4Fp2HWUElr...] GET /api/auth/me 401 26 - 0.585 ms | bot:BAJO[20] | "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+[2026-10-23T02:41:23.765Z] ::ffff:172.23.0.1 [jvwSLj7m1o...] GET /api/blog/categorias 500 935 - 28.969 ms | bot:BAJO[15] | "curl/8.21.0"
+[2026-10-23T02:41:56.199Z] ::ffff:172.23.0.1 [0tcaki5S1I...] GET /api/blog/categorias 403 77 - 14.899 ms | bot:BAJO[15] | "curl/8.21.0"
