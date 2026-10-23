@@ -205,6 +205,17 @@ const eliminarPublicacion = async (id_publicacion, id_autor) => {
     return result.rows[0];
 };
 
+// Eliminar físicamente una publicación (solo administración)
+const eliminarPublicacionDefinitivamente = async (id_publicacion) => {
+    const query = `
+        DELETE FROM PUBLICACIONES
+        WHERE ID_PUBLICACION = $1
+        RETURNING ID_PUBLICACION, TITULO
+    `;
+    const result = await pool.query(query, [id_publicacion]);
+    return result.rows[0];
+};
+
 // Actualizar publicación (solo del autor)
 const actualizarPublicacion = async (id_publicacion, id_autor, datos) => {
     const { titulo, id_categoria, texto_publicacion } = datos;
@@ -250,6 +261,7 @@ module.exports = {
     obtenerPublicacionPorAutorId,
     crearPublicacion,
     eliminarPublicacion,
+    eliminarPublicacionDefinitivamente,
     actualizarPublicacion,
     obtenerCategorias,
     cambiarEstadoPublicacion

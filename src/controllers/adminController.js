@@ -80,6 +80,26 @@ const eliminarPublicacion = async (req, res) => {
     }
 };
 
+const eliminarPublicacionDefinitivamente = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ error: 'ID de publicación requerido' });
+        }
+
+        const resultado = await articuloModel.eliminarPublicacionDefinitivamente(id);
+        if (!resultado) {
+            return res.status(404).json({ error: 'Publicación no encontrada' });
+        }
+
+        res.json({ mensaje: 'Publicación eliminada definitivamente' });
+    } catch (error) {
+        console.error('Error al eliminar definitivamente la publicación:', error);
+        res.status(500).json({ error: 'Error interno del servidor al eliminar la publicación' });
+    }
+};
+
 const obtenerPublicacionParaEditar = async (req, res) => {
     try {
         const { id } = req.params;
@@ -350,7 +370,7 @@ const cambiarEstatusPublicacion = async (req, res) => {
             return res.status(400).json({ error: 'ID de publicación requerido' });
         }
 
-        const estadosValidos = ['ACTIVO', 'INACTIVO', 'PENDIENTE_VERIFICACION', 'SUSPENDIDO', 'ELIMINADO'];
+        const estadosValidos = ['ACTIVO', 'INACTIVO', 'PENDIENTE_VERIFICACION', 'SUSPENDIDO'];
         if (!estatus || !estadosValidos.includes(estatus)) {
             return res.status(400).json({
                 error: `Estatus no válido. Opciones permitidas: ${estadosValidos.join(', ')}`
@@ -376,6 +396,7 @@ module.exports = {
     panelAdmin,
     crearPublicacion,
     eliminarPublicacion,
+    eliminarPublicacionDefinitivamente,
     obtenerPublicacionParaEditar,
     actualizarPublicacion,
     listarAutores,

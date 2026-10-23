@@ -43,6 +43,7 @@ router.put('/autores/:id', requerirAdmin, adminController.actualizarAutor);
 router.delete('/autores/:id', requerirAdmin, adminController.eliminarAutor);
 
 // Administración de Estatus de Publicaciones (SOLO para ADMIN)
+router.delete('/publicaciones/:id/permanente', requerirAdmin, adminController.eliminarPublicacionDefinitivamente);
 router.put('/publicaciones/:id/estatus', requerirAdmin, adminController.cambiarEstatusPublicacion);
 router.patch('/publicaciones/:id/estatus', requerirAdmin, adminController.cambiarEstatusPublicacion);
 

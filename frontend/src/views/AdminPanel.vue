@@ -92,9 +92,16 @@
                       <option value="INACTIVO">INACTIVO</option>
                       <option value="PENDIENTE_VERIFICACION">PENDIENTE_VERIFICACION</option>
                       <option value="SUSPENDIDO">SUSPENDIDO</option>
-                      <option value="ELIMINADO">ELIMINADO</option>
                     </select>
                     <span v-if="actualizandoEstatusId === pub.id" class="text-secondary" style="font-size: 0.7rem;">Guardando...</span>
+                    <button
+                      type="button"
+                      class="author-action-btn author-action-btn-danger"
+                      :disabled="actualizandoEstatusId === pub.id"
+                      @click="eliminarPublicacionPanel(pub)"
+                    >
+                      ELIMINAR
+                    </button>
                   </div>
                 </div>
               </div>
@@ -528,12 +535,6 @@ const actualizandoEstatusId = ref(null)
 async function cambiarEstatusPublicacionPanel(pub, nuevoEstatus) {
   if (!pub || pub.estatus === nuevoEstatus) return
 
-  if (nuevoEstatus === 'ELIMINADO') {
-    if (!confirm(`¿Estás seguro de marcar la publicación "${pub.titulo}" como ELIMINADA?`)) {
-      return
-    }
-  }
-
   const estatusAnterior = pub.estatus
   pub.estatus = nuevoEstatus
   actualizandoEstatusId.value = pub.id
@@ -546,6 +547,23 @@ async function cambiarEstatusPublicacionPanel(pub, nuevoEstatus) {
     console.error('Error al actualizar estatus de publicación:', err)
     pub.estatus = estatusAnterior
     alert(err.data?.error || 'No fue posible actualizar el estatus de la publicación')
+  } finally {
+    actualizandoEstatusId.value = null
+  }
+}
+
+async function eliminarPublicacionPanel(pub) {
+  if (!pub || !confirm(`¿Eliminar definitivamente la publicación "${pub.titulo}" de la base de datos? Esta acción no se puede deshacer.`)) {
+    return
+  }
+
+  actualizandoEstatusId.value = pub.id
+  try {
+    await api.delete(`/api/admin/publicaciones/${pub.id}/permanente`)
+    publicacionesPanel.value = publicacionesPanel.value.filter((publicacion) => publicacion.id !== pub.id)
+  } catch (err) {
+    console.error('Error al eliminar definitivamente la publicación:', err)
+    alert(err.data?.error || 'No fue posible eliminar la publicación')
   } finally {
     actualizandoEstatusId.value = null
   }
