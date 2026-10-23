@@ -35,7 +35,12 @@ function validarOrigen(req) {
     // clientes/proxies pueden omitir ese encabezado.
     const origenPermitido = process.env.FRONTEND_URL || 'https://proyecto-blog-0nqd.onrender.com';
     const origen = req.get('origin');
-    return !origen || origen === origenPermitido;
+    if (!origen || origen === origenPermitido) {
+        return true;
+    }
+
+    return process.env.NODE_ENV !== 'production'
+        && ['http://localhost:5174', 'http://127.0.0.1:5174'].includes(origen);
 }
 
 function requerirCsrf(req, res, next) {

@@ -96,6 +96,13 @@ function analizarComportamiento(comportamiento) {
 
 async function registrarMetricaAcceso(req, datos, inicio = Date.now()) {
     try {
+        const nivelBot = req.botAssessment?.level;
+        const clasificacionPorNivel = nivelBot === 'ALTO' || nivelBot === 'MEDIO'
+            ? 'SOSPECHOSO'
+            : nivelBot === 'BAJO'
+                ? 'HUMANO'
+                : 'INDETERMINADO';
+
         // La IP, el navegador y la duración se obtienen en el servidor para evitar
         // depender completamente de valores enviados por el cliente.
         await usuarioModel.registrarEventoAcceso({
@@ -108,8 +115,7 @@ async function registrarMetricaAcceso(req, datos, inicio = Date.now()) {
                 bot_detection: req.botAssessment || null
             },
             clasificacion_comportamiento: datos.clasificacion_comportamiento
-                || req.botAssessment?.level
-                || 'INDETERMINADO'
+                || clasificacionPorNivel
         });
     } catch (error) {
         // Un fallo de métricas no debe impedir el acceso, pero sí debe quedar visible.

@@ -40,19 +40,19 @@ services:
       PORT: 3002
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET debe definirse en .env}
       CSRF_SECRET: ${CSRF_SECRET:?CSRF_SECRET debe definirse en .env}
-      # Clave oficial de prueba para el entorno local. En producción debe
-      # sobrescribirse mediante TURNSTILE_SECRET_KEY en Render.
-      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-1x0000000000000000000000000000000AA}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5174}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_SECURE: ${SMTP_SECURE:-false}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-}
-      BREVO_API_KEY: ${BREVO_API_KEY:-}
-      BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL:-}
-      BREVO_SENDER_NAME: ${BREVO_SENDER_NAME:-TAD Blog}
+      # Claves oficiales de prueba para el entorno local. Producción se
+      # configura por separado en Render.
+      TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
+      FRONTEND_URL: http://localhost:5174
+      SMTP_HOST: ""
+      SMTP_PORT: 587
+      SMTP_SECURE: "false"
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM: ""
+      BREVO_API_KEY: ""
+      BREVO_SENDER_EMAIL: ""
+      BREVO_SENDER_NAME: Mi Blog
       CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3002:3002"
@@ -72,7 +72,7 @@ services:
       VITE_PROXY_TARGET: "http://backend:3002"
       # Debe corresponder con la clave secreta de prueba del backend local.
       # En producción debe sobrescribirse mediante VITE_TURNSTILE_SITE_KEY.
-      VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY:-1x00000000000000000000AA}
+      VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
       CHOKIDAR_USEPOLLING: "true"
     ports:
       - "5174:5174"

@@ -65,7 +65,17 @@ function origenNavegadorValido(req) {
     const origenPermitido = process.env.FRONTEND_URL || 'https://proyecto-blog-0nqd.onrender.com';
     const origin = req.get('origin');
     const referer = req.get('referer') || req.get('referrer');
-    return origin === origenPermitido || Boolean(referer && referer.startsWith(`${origenPermitido}/`));
+    if (process.env.NODE_ENV !== 'production' && !origin && !referer) {
+        return true;
+    }
+
+    const origenesPermitidos = process.env.NODE_ENV === 'production'
+        ? [origenPermitido]
+        : [origenPermitido, 'http://localhost:5174', 'http://127.0.0.1:5174'];
+    return origenesPermitidos.some(origenPermitidoActual =>
+        origin === origenPermitidoActual
+        || Boolean(referer && referer.startsWith(`${origenPermitidoActual}/`))
+    );
 }
 
 function protegerPeticiones(req, res, next) {
