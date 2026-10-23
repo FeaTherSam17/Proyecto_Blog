@@ -19,6 +19,10 @@ ALTER TABLE USUARIOS
 -- automaticamente las restricciones que dependan de esta columna.
 ALTER TABLE AUTORES DROP COLUMN IF EXISTS TELEFONO;
 
+-- Las publicaciones nuevas deben esperar la validación de un administrador.
+ALTER TABLE PUBLICACIONES
+    ALTER COLUMN ESTADO_PUBLICACION SET DEFAULT 'PENDIENTE_VERIFICACION';
+
 -- Las cuentas activas existentes se consideran cuentas heredadas para no bloquear
 -- el acceso durante el despliegue. Los nuevos registros se crean como pendientes
 -- desde el backend y no dependen de este UPDATE.

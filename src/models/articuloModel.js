@@ -178,8 +178,14 @@ const obtenerPublicacionPorAutorId = async (id_publicacion, id_autor) => {
 const crearPublicacion = async (publicacion) => {
     const { titulo, id_autor, id_categoria, texto_publicacion } = publicacion;
     const query = `
-        INSERT INTO PUBLICACIONES (TITULO, ID_AUTOR, ID_CATEGORIA, TEXTO_PUBLICACION)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO PUBLICACIONES (
+            TITULO,
+            ID_AUTOR,
+            ID_CATEGORIA,
+            TEXTO_PUBLICACION,
+            ESTADO_PUBLICACION
+        )
+        VALUES ($1, $2, $3, $4, 'PENDIENTE_VERIFICACION')
         RETURNING ID_PUBLICACION
     `;
     const values = [titulo, id_autor, id_categoria, texto_publicacion];
